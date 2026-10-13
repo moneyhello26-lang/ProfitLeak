@@ -1,0 +1,25 @@
+{
+  "dataset_version": "taraz-cafe-v1",
+  "date_from": "2026-07-04",
+  "date_to": "2026-10-01",
+  "sales_rows": 270,
+  "expense_rows": 274,
+  "product_count": 3,
+  "revenue": "5454000.00",
+  "cogs": "2475000.00",
+  "gross_profit": "2979000.00",
+  "gross_margin_percent": "54.62",
+  "operating_expenses": "736500.00",
+  "operating_profit": "2242500.00",
+  "packaging_baseline_30_days": "30000.00",
+  "packaging_current_30_days": "46500.00",
+  "coffee_baseline_margin_percent": "62.50",
+  "coffee_current_margin_percent": "25.00",
+  "possible_duplicate": {
+    "date": "2026-10-01",
+    "category": "Packaging",
+    "description": "Упаковка",
+    "amount": "1500.00",
+    "row_count": 2
+  }
+}

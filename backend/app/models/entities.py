@@ -51,17 +51,24 @@ class ImportBatch(RecordMixin, Base):
     __tablename__ = "imports"
     __table_args__ = (
         UniqueConstraint("business_id", "kind", "file_sha256", name="uq_imports_business_file"),
+        UniqueConstraint(
+            "business_id", "kind", "content_sha256", name="uq_imports_business_content"
+        ),
         UniqueConstraint("business_id", "id", name="uq_imports_business_id"),
         CheckConstraint("kind IN ('sales', 'expenses', 'products')", name="kind"),
         CheckConstraint("status IN ('processing', 'confirmed', 'failed')", name="status"),
         CheckConstraint("row_count >= 0", name="row_count"),
         CheckConstraint("file_sha256 ~ '^[0-9a-f]{64}$'", name="file_sha256"),
+        CheckConstraint(
+            "content_sha256 IS NULL OR content_sha256 ~ '^[0-9a-f]{64}$'", name="content_sha256"
+        ),
     )
 
     business_id: Mapped[UUID] = mapped_column(ForeignKey("businesses.id", ondelete="RESTRICT"))
     filename: Mapped[str] = mapped_column(String(255))
     kind: Mapped[str] = mapped_column(String(20))
     file_sha256: Mapped[str] = mapped_column(String(64))
+    content_sha256: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(20), default="processing")
     row_count: Mapped[int] = mapped_column(default=0, server_default="0")
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

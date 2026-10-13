@@ -106,6 +106,20 @@ def test_duplicate_import_is_rejected(db, records):
         db.flush()
 
 
+def test_invalid_content_digest_is_rejected(db, records):
+    with pytest.raises(IntegrityError), db.begin_nested():
+        db.add(
+            ImportBatch(
+                business_id=records[0].id,
+                filename="new.csv",
+                kind="sales",
+                file_sha256="c" * 64,
+                content_sha256="not-a-digest",
+            )
+        )
+        db.flush()
+
+
 def test_duplicate_source_row_is_rejected(db, records):
     db.add(make_sale(records))
     db.flush()

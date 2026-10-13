@@ -2,7 +2,7 @@
 
 ## Starting point and objective
 
-The repository currently contains only `README.md` and `ProfitLeak_AI_Requirements.docx`; there is no application code, API contract, test suite, or deployment setup. Build a working Russian language MVP for a synthetic Taraz cafe: load 90 days of sales and expenses, display server calculated KPIs, and explain at least three detectable issues. Use React, FastAPI, and PostgreSQL. This plan replaces the requirements document's SQLite choice with PostgreSQL; the other MVP priorities remain.
+At the initial review, the repository contained only `README.md` and `ProfitLeak_AI_Requirements.docx`, with no application code, API contract, test suite, or deployment setup. Build a working Russian language MVP for a synthetic Taraz cafe: load 90 days of sales and expenses, display server calculated KPIs, and explain at least three detectable issues. Use React, FastAPI, and PostgreSQL. This plan replaces the requirements document's SQLite choice with PostgreSQL; the other MVP priorities remain.
 
 ## MVP scope
 
@@ -12,19 +12,35 @@ The repository currently contains only `README.md` and `ProfitLeak_AI_Requiremen
 
 ## Implementation progress
 
-The backend database foundation is implemented: six SQLAlchemy models, an Alembic
-migration, PostgreSQL Compose configuration, and a FastAPI database health endpoint.
-The initial migration has been applied locally and checked for schema drift. Nineteen
-tests passed against PostgreSQL, including decimal arithmetic, import uniqueness,
-references across businesses, invalid values, and migration reversal. See README for
-setup and verification. The next work is API request/response contracts, frontend
-scaffolding, and the CSV/XLSX import flow.
+The backend database foundation and CSV/XLSX import stage are implemented: six
+SQLAlchemy models, Alembic migrations, PostgreSQL Compose configuration, health and
+business endpoints, preview/confirm endpoints, row validation, transaction rollback,
+and raw/normalized file deduplication. Deterministic 90 day cafe data and financial
+analytics are implemented, including date filters, revenue trends, expense categories,
+product profitability and explicit missing data states. The current implemented API
+contract is exported to `shared/openapi.json`. All 89 tests passed against PostgreSQL;
+financial results match independent fixtures and repeat demo loading preserves row
+counts. See README for setup and verification.
+The React interface is now implemented with a light teal workspace, Russian
+navigation, backend KPI cards, revenue chart/table, expense chart, product
+profitability and pagination, date filters, business creation, repeatable demo
+loading, and CSV/XLSX preview/confirmation/history. API types are generated from
+OpenAPI. Loading, empty, request error and missing-data states are included.
+Desktop and 390px mobile layouts and date/table/navigation interactions were
+checked in Chrome. Browser upload automation was blocked by the extension's local
+file access setting; the backend import integration tests remain the verification
+for that path. Next work is the rule based leak detector, insight screens and
+evidence-based recommendations. The current UI does not claim to detect leaks yet.
 
 ## Architecture and repository
 
 ```text
-frontend/                 React + TypeScript + Vite, Tailwind, React Router, Recharts
-  src/{components,pages,services,types}/
+frontend/                 React + TypeScript + Vite, custom CSS, React Router, Recharts
+  src/App.tsx             Workspace, routes and current MVP screens
+  src/styles.css          Responsive layout, components and typography
+  src/{lib,types}/         API client, exact decimal display, generated contract
+  public/templates/       Downloadable CSV examples
+  tests/                  Financial display precision checks
 backend/                  FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL
   app/{api,models,schemas,services,db,core}/
   tests/

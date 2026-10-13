@@ -10,5 +10,6 @@ pytest-cache-files-*/
 *.egg-info/
 node_modules/
 dist/
+*.tsbuildinfo
 .coverage
 htmlcov/

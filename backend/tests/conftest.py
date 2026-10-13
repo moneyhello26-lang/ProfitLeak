@@ -33,6 +33,9 @@ def pg_connection():
 
 @pytest.fixture
 def db(pg_connection):
-    with Session(bind=pg_connection, join_transaction_mode="create_savepoint") as session:
-        yield session
-        session.rollback()
+    test_transaction = pg_connection.begin_nested()
+    try:
+        with Session(bind=pg_connection, join_transaction_mode="create_savepoint") as session:
+            yield session
+    finally:
+        test_transaction.rollback()
