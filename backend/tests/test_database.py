@@ -8,8 +8,8 @@ from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
 from fastapi.testclient import TestClient
-from sqlalchemy import func, inspect, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func, inspect, select, text
+from sqlalchemy.exc import IntegrityError, StatementError
 
 from app.db.base import Base
 from app.db.session import get_db
@@ -54,8 +54,8 @@ def make_sale(records, **values):
     return Sale(**data)
 
 
-def test_migration_matches_models(pg_connection):
-    context = MigrationContext.configure(pg_connection, opts={"compare_type": True})
+def test_migration_matches_models(database_connection):
+    context = MigrationContext.configure(database_connection, opts={"compare_type": True})
     assert compare_metadata(context, Base.metadata) == []
 
 
@@ -63,10 +63,23 @@ def test_exact_money_and_unknown_cost(db, records):
     db.add(make_sale(records))
     db.add(make_sale(records, source_row=3, unit_cost=None))
     db.flush()
-    amount = db.scalar(select(func.sum(Sale.quantity * Sale.unit_price)))
+    amount = sum(row.quantity * row.unit_price for row in db.scalars(select(Sale)))
     assert isinstance(amount, Decimal)
     assert amount == Decimal("0.60")
     assert db.scalar(select(Sale.unit_cost).where(Sale.source_row == 3)) is None
+
+
+def test_large_money_round_trip_is_exact_and_sqlite_storage_uses_integers(db, records):
+    price = Decimal("90071992547409.93")
+    db.add(make_sale(records, unit_price=price, quantity=Decimal("0.001")))
+    db.flush()
+    row = db.scalar(select(Sale))
+    assert row.unit_price == price
+    assert row.quantity == Decimal("0.001")
+    assert row.created_at.tzinfo is not None
+    if db.get_bind().dialect.name == "sqlite":
+        raw = db.execute(text("SELECT unit_price, quantity, typeof(unit_price) FROM sales")).one()
+        assert raw == (9007199254740993, 1, "integer")
 
 
 @pytest.mark.parametrize("field", ["product_id", "import_id"])
@@ -90,7 +103,7 @@ def test_cross_business_references_are_rejected(db, records, field):
     ],
 )
 def test_invalid_sales_are_rejected(db, records, values):
-    with pytest.raises(IntegrityError), db.begin_nested():
+    with pytest.raises((IntegrityError, StatementError)), db.begin_nested():
         db.add(make_sale(records, **values))
         db.flush()
 
@@ -171,7 +184,7 @@ def test_savings_require_scenario_label(db, records, estimate_type):
         db.flush()
 
 
-def test_health_with_postgresql(db):
+def test_health_with_database(db):
     app.dependency_overrides[get_db] = lambda: db
     try:
         with TestClient(app) as client:
@@ -182,14 +195,14 @@ def test_health_with_postgresql(db):
         app.dependency_overrides.clear()
 
 
-def test_migration_downgrade_and_upgrade(pg_connection):
+def test_migration_downgrade_and_upgrade(database_connection):
     config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
-    config.attributes["connection"] = pg_connection
-    with pg_connection.begin_nested():
+    config.attributes["connection"] = database_connection
+    with database_connection.begin_nested():
         command.downgrade(config, "base")
-        assert inspect(pg_connection).get_table_names() == ["alembic_version"]
+        assert inspect(database_connection).get_table_names() == ["alembic_version"]
         command.upgrade(config, "head")
-        assert set(inspect(pg_connection).get_table_names()) == {
+        assert set(inspect(database_connection).get_table_names()) == {
             "alembic_version",
             "businesses",
             "products",
@@ -197,4 +210,5 @@ def test_migration_downgrade_and_upgrade(pg_connection):
             "sales",
             "expenses",
             "insights",
+            "analysis_runs",
         }

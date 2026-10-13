@@ -10,6 +10,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from app.db.types import ExactDecimal
+
 revision: str = "0001"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
@@ -28,7 +30,7 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
         sa.CheckConstraint("currency = 'KZT'", name=op.f("ck_businesses_currency_kzt")),
@@ -47,10 +49,15 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
-        sa.CheckConstraint("file_sha256 ~ '^[0-9a-f]{64}$'", name=op.f("ck_imports_file_sha256")),
+        sa.CheckConstraint(
+            "(length(file_sha256) = 64 AND file_sha256 NOT GLOB '*[^0-9a-f]*')"
+            if op.get_bind().dialect.name == "sqlite"
+            else "file_sha256 ~ '^[0-9a-f]{64}$'",
+            name=op.f("ck_imports_file_sha256"),
+        ),
         sa.CheckConstraint(
             "kind IN ('sales', 'expenses', 'products')", name=op.f("ck_imports_kind")
         ),
@@ -76,21 +83,24 @@ def upgrade() -> None:
         sa.Column("confidence", sa.String(length=10), nullable=False),
         sa.Column("period_start", sa.Date(), nullable=False),
         sa.Column("period_end", sa.Date(), nullable=False),
-        sa.Column("evidence_json", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.Column("estimated_savings", sa.Numeric(precision=18, scale=2), nullable=True),
+        sa.Column(
+            "evidence_json",
+            sa.JSON().with_variant(postgresql.JSONB(), "postgresql"),
+            nullable=False,
+        ),
+        sa.Column("estimated_savings", ExactDecimal(18, 2), nullable=True),
         sa.Column("estimate_type", sa.String(length=20), nullable=True),
         sa.Column("recommendation", sa.Text(), nullable=False),
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
         sa.CheckConstraint(
             "(estimated_savings IS NULL AND estimate_type IS NULL) OR "
             "(estimated_savings IS NOT NULL AND estimated_savings >= 0 "
-            "AND estimated_savings <> 'NaN'::numeric "
             "AND estimate_type IS NOT NULL AND estimate_type = 'scenario')",
             name=op.f("ck_insights_savings"),
         ),
@@ -127,7 +137,7 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -149,17 +159,15 @@ def upgrade() -> None:
         sa.Column("record_type", sa.String(length=10), server_default="expense", nullable=False),
         sa.Column("category", sa.String(length=100), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("amount", sa.Numeric(precision=18, scale=2), nullable=False),
+        sa.Column("amount", ExactDecimal(18, 2), nullable=False),
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
-        sa.CheckConstraint(
-            "amount >= 0 AND amount <> 'NaN'::numeric", name=op.f("ck_expenses_amount")
-        ),
+        sa.CheckConstraint("amount >= 0", name=op.f("ck_expenses_amount")),
         sa.CheckConstraint(
             "record_type IN ('expense', 'refund')", name=op.f("ck_expenses_record_type")
         ),
@@ -194,27 +202,23 @@ def upgrade() -> None:
         sa.Column("source_row", sa.Integer(), nullable=False),
         sa.Column("date", sa.Date(), nullable=False),
         sa.Column("record_type", sa.String(length=10), server_default="sale", nullable=False),
-        sa.Column("quantity", sa.Numeric(precision=18, scale=3), nullable=False),
-        sa.Column("unit_price", sa.Numeric(precision=18, scale=2), nullable=False),
-        sa.Column("unit_cost", sa.Numeric(precision=18, scale=2), nullable=True),
+        sa.Column("quantity", ExactDecimal(18, 3), nullable=False),
+        sa.Column("unit_price", ExactDecimal(18, 2), nullable=False),
+        sa.Column("unit_cost", ExactDecimal(18, 2), nullable=True),
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
+            server_default=sa.func.now(),
             nullable=False,
         ),
-        sa.CheckConstraint(
-            "quantity > 0 AND quantity <> 'NaN'::numeric", name=op.f("ck_sales_quantity")
-        ),
+        sa.CheckConstraint("quantity > 0", name=op.f("ck_sales_quantity")),
         sa.CheckConstraint("record_type IN ('sale', 'return')", name=op.f("ck_sales_record_type")),
         sa.CheckConstraint(
-            "unit_cost IS NULL OR (unit_cost >= 0 AND unit_cost <> 'NaN'::numeric)",
+            "unit_cost IS NULL OR unit_cost >= 0",
             name=op.f("ck_sales_unit_cost"),
         ),
-        sa.CheckConstraint(
-            "unit_price >= 0 AND unit_price <> 'NaN'::numeric", name=op.f("ck_sales_unit_price")
-        ),
+        sa.CheckConstraint("unit_price >= 0", name=op.f("ck_sales_unit_price")),
         sa.CheckConstraint("source_row > 0", name=op.f("ck_sales_source_row")),
         sa.ForeignKeyConstraint(
             ["business_id", "import_id"],

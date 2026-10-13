@@ -2,7 +2,7 @@
 
 ## Starting point and objective
 
-At the initial review, the repository contained only `README.md` and `ProfitLeak_AI_Requirements.docx`, with no application code, API contract, test suite, or deployment setup. Build a working Russian language MVP for a synthetic Taraz cafe: load 90 days of sales and expenses, display server calculated KPIs, and explain at least three detectable issues. Use React, FastAPI, and PostgreSQL. This plan replaces the requirements document's SQLite choice with PostgreSQL; the other MVP priorities remain.
+At the initial review, the repository contained only `README.md` and `ProfitLeak_AI_Requirements.docx`, with no application code, API contract, test suite, or deployment setup. Build a working Russian language MVP for a synthetic Taraz cafe: load 90 days of sales and expenses, display server calculated KPIs, and explain at least three detectable issues. React and FastAPI are implemented. The initial database choice was PostgreSQL; on 2026-10-13 the user requested operation without Docker, so SQLite became the default, matching the source requirements. PostgreSQL remains optional.
 
 ## MVP scope
 
@@ -29,8 +29,21 @@ OpenAPI. Loading, empty, request error and missing-data states are included.
 Desktop and 390px mobile layouts and date/table/navigation interactions were
 checked in Chrome. Browser upload automation was blocked by the extension's local
 file access setting; the backend import integration tests remain the verification
-for that path. Next work is the rule based leak detector, insight screens and
-evidence-based recommendations. The current UI does not claim to detect leaks yet.
+for that path. The next stage now implements five detectors, persisted analysis and evidence,
+template recommendations, insight filters/details and recent dashboard findings.
+SQLite migrations and isolated database tests run without Docker. `start.ps1`
+applies migrations and starts both servers.
+
+## Current continuation
+
+Implemented FR-05, FR-07 and the offline recommendation path of FR-08 as one complete
+stage: five Decimal rules, persisted analysis status and insights, source evidence,
+`POST /analysis/run`, `GET /insights`, `GET /insights/{id}`, a detector page with
+severity/type filters and details, and recent signals on the dashboard. Sync OpenAPI
+and TypeScript types, then validate the three independent demo scenarios, sparse
+data, missing costs, returns/refunds, repeat analysis, tenant scoping and stale data.
+Use SQLite by default and keep the existing visual style. LLM provider integration and
+P1/P2 features remain separate stages, as requested by section 16 of the DOCX.
 
 ## Architecture and repository
 
@@ -41,17 +54,18 @@ frontend/                 React + TypeScript + Vite, custom CSS, React Router, R
   src/{lib,types}/         API client, exact decimal display, generated contract
   public/templates/       Downloadable CSV examples
   tests/                  Financial display precision checks
-backend/                  FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL
+backend/                  FastAPI, Pydantic, SQLAlchemy, Alembic, SQLite
   app/{api,models,schemas,services,db,core}/
   tests/
 shared/openapi.json       Versioned contract, generated from FastAPI and reviewed
 demo_data/                Reproducible cafe generator and expected signal fixtures
-docker-compose.yml        Local PostgreSQL and application services
+start.ps1                 SQLite migrations and both local servers
+docker-compose.yml        Optional PostgreSQL only
 .env.example              Nonsecret configuration
 README.md                 Setup, commands, demo flow
 ```
 
-Keep business calculations and detection in backend services. Store money as PostgreSQL `NUMERIC` and calculate with Python `Decimal`; serialize amounts as decimal strings in the API so the browser does not silently round them. Use UTC timestamps for records and business local dates for analysis. Every query and import is scoped to a business ID, even in the single demo business.
+Keep business calculations and detection in backend services. Store money as integer cents and quantities as integer thousandths on SQLite (NUMERIC on optional PostgreSQL); calculate with Python `Decimal`; serialize amounts as decimal strings in the API so the browser does not silently round them. Use UTC timestamps for records and business local dates for analysis. Every query and import is scoped to a business ID, even in the single demo business.
 
 ## Contract and data design first
 
@@ -88,7 +102,7 @@ The two owners work in `feature/backend-ai` and `feature/frontend`, merging thro
 
 ## MVP acceptance demonstration
 
-From a clean checkout, start PostgreSQL and both apps, run migrations, and open the Russian UI. Load the Taraz cafe demo data twice and confirm the second attempt changes no row counts. Show 90 days of revenue, expenses, and profit; run analysis; inspect the packaging spike, margin decline, and possible duplicate with their source evidence. Upload one malformed file and show row level validation. Disable the LLM setting and repeat the insight flow. Confirm scenario savings is marked as an estimate and KPI values match the independent fixture calculations.
+From a clean checkout, install dependencies, run `start.ps1`, and open the Russian UI. Load the Taraz cafe demo data twice and confirm the second attempt changes no row counts. Show 90 days of revenue, expenses, and profit; run analysis; inspect the packaging spike, margin decline, and possible duplicate with their source evidence. Upload one malformed file and show row level validation. Disable the LLM setting and repeat the insight flow. Confirm scenario savings is marked as an estimate and KPI values match the independent fixture calculations.
 
 ## Decisions to settle during stage 0
 

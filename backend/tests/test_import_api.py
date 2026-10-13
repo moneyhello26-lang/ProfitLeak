@@ -148,10 +148,10 @@ def test_failed_import_rolls_back_all_records(db, monkeypatch):
     parsed = parse_file("sales.csv", (SALES_HEADER + VALID_SALE).encode(), "sales")
     original_insert = import_store.insert
 
-    def fail_sales_insert(model):
+    def fail_sales_insert(session, model):
         if model is Sale:
             raise RuntimeError("simulated failure after product insert")
-        return original_insert(model)
+        return original_insert(session, model)
 
     monkeypatch.setattr(import_store, "insert", fail_sales_insert)
     with pytest.raises(RuntimeError):

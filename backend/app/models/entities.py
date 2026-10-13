@@ -1,4 +1,4 @@
-"""PostgreSQL records. Financial values always use Decimal backed by NUMERIC."""
+"""Business records with exact fixed point finance and portable SQLite storage."""
 
 from datetime import date, datetime
 from decimal import Decimal
@@ -6,12 +6,11 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
+    JSON,
     CheckConstraint,
-    DateTime,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
-    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -20,6 +19,21 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, RecordMixin
+from app.db.types import ExactDecimal, UTCDateTime
+
+JSON_DATA = JSON().with_variant(JSONB(), "postgresql")
+
+
+def digest_checks(column: str, nullable=False):
+    prefix = f"{column} IS NULL OR " if nullable else ""
+    return (
+        CheckConstraint(prefix + f"{column} ~ '^[0-9a-f]{{64}}$'", name=column).ddl_if(
+            dialect="postgresql"
+        ),
+        CheckConstraint(
+            prefix + f"(length({column}) = 64 AND {column} NOT GLOB '*[^0-9a-f]*')", name=column
+        ).ddl_if(dialect="sqlite"),
+    )
 
 
 class Business(RecordMixin, Base):
@@ -58,10 +72,8 @@ class ImportBatch(RecordMixin, Base):
         CheckConstraint("kind IN ('sales', 'expenses', 'products')", name="kind"),
         CheckConstraint("status IN ('processing', 'confirmed', 'failed')", name="status"),
         CheckConstraint("row_count >= 0", name="row_count"),
-        CheckConstraint("file_sha256 ~ '^[0-9a-f]{64}$'", name="file_sha256"),
-        CheckConstraint(
-            "content_sha256 IS NULL OR content_sha256 ~ '^[0-9a-f]{64}$'", name="content_sha256"
-        ),
+        *digest_checks("file_sha256"),
+        *digest_checks("content_sha256", nullable=True),
     )
 
     business_id: Mapped[UUID] = mapped_column(ForeignKey("businesses.id", ondelete="RESTRICT"))
@@ -71,7 +83,7 @@ class ImportBatch(RecordMixin, Base):
     content_sha256: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(20), default="processing")
     row_count: Mapped[int] = mapped_column(default=0, server_default="0")
-    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    confirmed_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
 
 
 class Sale(RecordMixin, Base):
@@ -92,10 +104,10 @@ class Sale(RecordMixin, Base):
         UniqueConstraint("import_id", "source_row", name="uq_sales_import_row"),
         CheckConstraint("source_row > 0", name="source_row"),
         CheckConstraint("record_type IN ('sale', 'return')", name="record_type"),
-        CheckConstraint("quantity > 0 AND quantity <> 'NaN'::numeric", name="quantity"),
-        CheckConstraint("unit_price >= 0 AND unit_price <> 'NaN'::numeric", name="unit_price"),
+        CheckConstraint("quantity > 0", name="quantity"),
+        CheckConstraint("unit_price >= 0", name="unit_price"),
         CheckConstraint(
-            "unit_cost IS NULL OR (unit_cost >= 0 AND unit_cost <> 'NaN'::numeric)",
+            "unit_cost IS NULL OR unit_cost >= 0",
             name="unit_cost",
         ),
         Index("ix_sales_business_date", "business_id", "date"),
@@ -108,9 +120,9 @@ class Sale(RecordMixin, Base):
     source_row: Mapped[int]
     date: Mapped[date]
     record_type: Mapped[str] = mapped_column(String(10), default="sale", server_default="sale")
-    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 3))
-    unit_price: Mapped[Decimal] = mapped_column(Numeric(18, 2))
-    unit_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
+    quantity: Mapped[Decimal] = mapped_column(ExactDecimal(18, 3))
+    unit_price: Mapped[Decimal] = mapped_column(ExactDecimal(18, 2))
+    unit_cost: Mapped[Decimal | None] = mapped_column(ExactDecimal(18, 2))
 
 
 class Expense(RecordMixin, Base):
@@ -125,7 +137,7 @@ class Expense(RecordMixin, Base):
         UniqueConstraint("import_id", "source_row", name="uq_expenses_import_row"),
         CheckConstraint("source_row > 0", name="source_row"),
         CheckConstraint("record_type IN ('expense', 'refund')", name="record_type"),
-        CheckConstraint("amount >= 0 AND amount <> 'NaN'::numeric", name="amount"),
+        CheckConstraint("amount >= 0", name="amount"),
         Index("ix_expenses_business_date", "business_id", "date"),
         Index("ix_expenses_business_category_date", "business_id", "category", "date"),
     )
@@ -139,7 +151,23 @@ class Expense(RecordMixin, Base):
     )
     category: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(Text)
-    amount: Mapped[Decimal] = mapped_column(Numeric(18, 2))
+    amount: Mapped[Decimal] = mapped_column(ExactDecimal(18, 2))
+
+
+class AnalysisRun(RecordMixin, Base):
+    __tablename__ = "analysis_runs"
+    __table_args__ = (
+        UniqueConstraint(
+            "business_id", "period_start", "period_end", name="uq_analysis_runs_business_period"
+        ),
+        CheckConstraint("period_start <= period_end", name="period"),
+    )
+
+    business_id: Mapped[UUID] = mapped_column(ForeignKey("businesses.id", ondelete="RESTRICT"))
+    period_start: Mapped[date]
+    period_end: Mapped[date]
+    analyzed_at: Mapped[datetime] = mapped_column(UTCDateTime())
+    result_json: Mapped[dict[str, Any]] = mapped_column(JSON_DATA)
 
 
 class Insight(RecordMixin, Base):
@@ -156,7 +184,6 @@ class Insight(RecordMixin, Base):
         CheckConstraint(
             "(estimated_savings IS NULL AND estimate_type IS NULL) OR "
             "(estimated_savings IS NOT NULL AND estimated_savings >= 0 "
-            "AND estimated_savings <> 'NaN'::numeric "
             "AND estimate_type IS NOT NULL AND estimate_type = 'scenario')",
             name="savings",
         ),
@@ -169,7 +196,7 @@ class Insight(RecordMixin, Base):
     confidence: Mapped[str] = mapped_column(String(10))
     period_start: Mapped[date]
     period_end: Mapped[date]
-    evidence_json: Mapped[dict[str, Any]] = mapped_column(JSONB)
-    estimated_savings: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
+    evidence_json: Mapped[dict[str, Any]] = mapped_column(JSON_DATA)
+    estimated_savings: Mapped[Decimal | None] = mapped_column(ExactDecimal(18, 2))
     estimate_type: Mapped[str | None] = mapped_column(String(20))
     recommendation: Mapped[str] = mapped_column(Text)

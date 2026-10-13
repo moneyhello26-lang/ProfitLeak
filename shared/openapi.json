@@ -163,7 +163,7 @@
             }
           },
           "413": {
-            "description": "Content Too Large",
+            "description": "Request Entity Too Large",
             "content": {
               "application/json": {
                 "schema": {
@@ -183,7 +183,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Content",
+            "description": "Unprocessable Entity",
             "content": {
               "application/json": {
                 "schema": {
@@ -262,7 +262,7 @@
             }
           },
           "413": {
-            "description": "Content Too Large",
+            "description": "Request Entity Too Large",
             "content": {
               "application/json": {
                 "schema": {
@@ -282,7 +282,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Content",
+            "description": "Unprocessable Entity",
             "content": {
               "application/json": {
                 "schema": {
@@ -814,6 +814,304 @@
         }
       }
     },
+    "/api/v1/analysis/run": {
+      "post": {
+        "tags": [
+          "Insights"
+        ],
+        "summary": "Analyze",
+        "operationId": "analyze_api_v1_analysis_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/insights": {
+      "get": {
+        "tags": [
+          "Insights"
+        ],
+        "summary": "Insight List",
+        "operationId": "insight_list_api_v1_insights_get",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Severity"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "EXPENSE_SPIKE",
+                    "MARGIN_DROP",
+                    "LOW_PROFIT_PRODUCT",
+                    "SALES_DROP",
+                    "POSSIBLE_DUPLICATE"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightsRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/insights/{insight_id}": {
+      "get": {
+        "tags": [
+          "Insights"
+        ],
+        "summary": "Insight Detail",
+        "operationId": "insight_detail_api_v1_insights__insight_id__get",
+        "parameters": [
+          {
+            "name": "insight_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Insight Id"
+            }
+          },
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "summary": "Health",
@@ -835,6 +1133,119 @@
   },
   "components": {
     "schemas": {
+      "AnalysisRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "current_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "baseline_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "analyzed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Analyzed At"
+          },
+          "rules_version": {
+            "type": "string",
+            "title": "Rules Version"
+          },
+          "insight_count": {
+            "type": "integer",
+            "title": "Insight Count"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/RuleCheck"
+            },
+            "type": "array",
+            "title": "Checks"
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "business_id",
+          "period",
+          "current_period",
+          "baseline_period",
+          "analyzed_at",
+          "rules_version",
+          "insight_count",
+          "checks"
+        ],
+        "title": "AnalysisRead"
+      },
+      "AnalysisRequest": {
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "date_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date From"
+          },
+          "date_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_id"
+        ],
+        "title": "AnalysisRequest"
+      },
       "Body_confirm_api_v1_imports_confirm_post": {
         "properties": {
           "business_id": {
@@ -1435,6 +1846,376 @@
         ],
         "title": "ImportRead"
       },
+      "InsightEvidence": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "current_period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "baseline_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_value": {
+            "type": "string",
+            "title": "Current Value"
+          },
+          "baseline_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Value"
+          },
+          "value_unit": {
+            "type": "string",
+            "enum": [
+              "KZT",
+              "percent"
+            ],
+            "title": "Value Unit",
+            "default": "KZT"
+          },
+          "deviation_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deviation Percent"
+          },
+          "deviation_pp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deviation Pp"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "formula": {
+            "type": "string",
+            "title": "Formula"
+          },
+          "current_rows": {
+            "type": "integer",
+            "title": "Current Rows"
+          },
+          "baseline_rows": {
+            "type": "integer",
+            "title": "Baseline Rows",
+            "default": 0
+          },
+          "current_days": {
+            "type": "integer",
+            "title": "Current Days"
+          },
+          "baseline_days": {
+            "type": "integer",
+            "title": "Baseline Days",
+            "default": 0
+          },
+          "source_rows": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRow"
+            },
+            "type": "array",
+            "title": "Source Rows"
+          },
+          "source_rows_total": {
+            "type": "integer",
+            "title": "Source Rows Total"
+          },
+          "caveat": {
+            "type": "string",
+            "title": "Caveat"
+          },
+          "savings_assumption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Savings Assumption"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "current_revenue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Revenue"
+          },
+          "current_cogs": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Cogs"
+          },
+          "baseline_revenue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Revenue"
+          },
+          "baseline_cogs": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Cogs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "explanation",
+          "entity",
+          "current_period",
+          "current_value",
+          "formula",
+          "current_rows",
+          "current_days",
+          "source_rows",
+          "source_rows_total",
+          "caveat"
+        ],
+        "title": "InsightEvidence"
+      },
+      "InsightRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "EXPENSE_SPIKE",
+              "MARGIN_DROP",
+              "LOW_PROFIT_PRODUCT",
+              "SALES_DROP",
+              "POSSIBLE_DUPLICATE"
+            ],
+            "title": "Type"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Severity"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence"
+          },
+          "period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/InsightEvidence"
+          },
+          "potential_savings_kzt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Potential Savings Kzt"
+          },
+          "estimate_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "scenario"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimate Type"
+          },
+          "recommendation": {
+            "type": "string",
+            "title": "Recommendation"
+          },
+          "recommendation_source": {
+            "type": "string",
+            "const": "template",
+            "title": "Recommendation Source",
+            "default": "template"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "business_id",
+          "type",
+          "severity",
+          "confidence",
+          "period",
+          "evidence",
+          "potential_savings_kzt",
+          "estimate_type",
+          "recommendation",
+          "created_at"
+        ],
+        "title": "InsightRead"
+      },
+      "InsightsRead": {
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InsightRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_id",
+          "period",
+          "analysis",
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "InsightsRead"
+      },
       "Metric": {
         "properties": {
           "value": {
@@ -1794,6 +2575,50 @@
         ],
         "title": "RowError"
       },
+      "RuleCheck": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "EXPENSE_SPIKE",
+              "MARGIN_DROP",
+              "LOW_PROFIT_PRODUCT",
+              "SALES_DROP",
+              "POSSIBLE_DUPLICATE"
+            ],
+            "title": "Type"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "evaluated",
+              "insufficient_data"
+            ],
+            "title": "Status"
+          },
+          "signals": {
+            "type": "integer",
+            "title": "Signals"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "skipped_entities": {
+            "type": "integer",
+            "title": "Skipped Entities",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "status",
+          "signals",
+          "reason"
+        ],
+        "title": "RuleCheck"
+      },
       "SalesRow": {
         "properties": {
           "date": {
@@ -1853,6 +2678,52 @@
           "unit_cost"
         ],
         "title": "SalesRow"
+      },
+      "SourceRow": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Record Id"
+          },
+          "import_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Import Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "source_row": {
+            "type": "integer",
+            "title": "Source Row"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "record_type": {
+            "type": "string",
+            "title": "Record Type"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id",
+          "import_id",
+          "filename",
+          "source_row",
+          "date",
+          "record_type",
+          "amount"
+        ],
+        "title": "SourceRow"
       },
       "ValidationError": {
         "properties": {

@@ -12,6 +12,11 @@ export type ImportRead = components['schemas']['ImportRead']
 export type ImportConfirmation = components['schemas']['ImportConfirmation']
 export type Demo = components['schemas']['DemoLoad']
 export type ImportKind = ImportRead['kind']
+export type Analysis = components['schemas']['AnalysisRead']
+export type Insights = components['schemas']['InsightsRead']
+export type Insight = components['schemas']['InsightRead']
+export type InsightType = Insight['type']
+export type Severity = Insight['severity']
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response

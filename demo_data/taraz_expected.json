@@ -15,6 +15,11 @@
   "packaging_current_30_days": "46500.00",
   "coffee_baseline_margin_percent": "62.50",
   "coffee_current_margin_percent": "25.00",
+  "packaging_deviation_percent": "55.00",
+  "packaging_scenario_savings": "16500.00",
+  "coffee_margin_drop_pp": "-37.50",
+  "coffee_scenario_savings": "337500.00",
+  "expected_insight_types": ["EXPENSE_SPIKE", "MARGIN_DROP", "POSSIBLE_DUPLICATE"],
   "possible_duplicate": {
     "date": "2026-10-01",
     "category": "Packaging",

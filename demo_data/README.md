@@ -38,5 +38,9 @@ database/API results against it.
   and amount of 1,500 KZT. They remain distinct records with source rows so they
   can be reviewed by a person.
 
-The scenarios are input fixtures for the next detector stage. They do not yet
-create insight records or imply proven losses.
+Run `POST /api/v1/analysis/run` for the demo business to persist these three
+signals. Packaging scenario savings are 46,500 − 30,000 = **16,500 KZT**.
+Coffee scenario savings are 900,000 × (62.50 − 25.00) / 100 = **337,500 KZT**,
+assuming restored baseline margin at current revenue. Duplicate savings are null
+until a person checks the source documents. Scenarios can overlap and are not
+summed. See `REQUIREMENTS.md` for thresholds and coverage rules.

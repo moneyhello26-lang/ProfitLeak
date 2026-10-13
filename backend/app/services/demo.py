@@ -4,9 +4,9 @@ from datetime import date, timedelta
 from uuid import NAMESPACE_URL, uuid5
 
 from sqlalchemy import func, select
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
+from app.db.statements import insert
 from app.models import Business, Expense, Product, Sale
 from app.schemas.analytics import DemoLoad, Period
 from app.schemas.imports import BusinessRead
@@ -70,7 +70,7 @@ def build_demo_files() -> dict[str, bytes]:
 def load_demo(db: Session) -> DemoLoad:
     with db.begin_nested():
         db.execute(
-            insert(Business)
+            insert(db, Business)
             .values(id=DEMO_BUSINESS_ID, name="Кафе Тараз — демо", industry="cafe")
             .on_conflict_do_nothing(index_elements=[Business.id])
         )

@@ -1,11 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
-import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router'
+import { Link, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
 import { Activity, ArrowDownToLine, ArrowRight, ArrowUpRight, BarChart3, Building2, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, FileSpreadsheet, LayoutDashboard, LoaderCircle, Menu, Package, Plus, RefreshCw, Settings2, Sparkles, Upload, Wallet, X, AlertCircle, TrendingUp, Layers3 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api, categoryLabel, dateLabel, decimal, kindLabel, metricReason, money, periodLabel, productLabel, query } from './lib/api'
 import type { Business, Demo, Expenses, ImportConfirmation, ImportKind, ImportPreview, ImportRead, Metric, Period, Products, Revenue, Summary } from './lib/api'
+import type { Analysis, Insight, Insights, InsightType, Severity } from './lib/api'
 
 type Workspace = {
   businesses: Business[]; business: Business | null; selectBusiness: (id: string) => void
@@ -82,6 +83,8 @@ export default function App() {
     <Route path="/" element={value.business ? <Dashboard /> : <Welcome />} />
     <Route path="/products" element={value.business ? <ProductsPage /> : <Welcome />} />
     <Route path="/imports" element={value.business ? <ImportPage key={businessId} /> : <Welcome />} />
+    <Route path="/insights" element={value.business ? <DetectorPage /> : <Welcome />} />
+    <Route path="/insights/:insightId" element={value.business ? <InsightPage /> : <Welcome />} />
     <Route path="/settings" element={<SettingsPage />} />
     <Route path="*" element={<Empty title="Страница не найдена" text="Вернитесь к обзору вашего бизнеса."><Link className="button primary" to="/">К обзору</Link></Empty>} />
   </Routes>}</Shell></WorkspaceContext.Provider>
@@ -101,6 +104,7 @@ function Shell({ children }: { children: ReactNode }) {
   }, [mobileOpen])
   const links: { to: string; label: string; icon: LucideIcon }[] = [
     { to: '/', label: 'Обзор', icon: LayoutDashboard }, { to: '/products', label: 'Товары', icon: Package },
+    { to: '/insights', label: 'Детектор проблем', icon: Activity },
     { to: '/imports', label: 'Импорт данных', icon: ArrowDownToLine }, { to: '/settings', label: 'Мой бизнес', icon: Settings2 },
   ]
   return <div className="app-shell">
@@ -184,6 +188,7 @@ function Dashboard() {
       {!!data.summary.missing_cost_rows && <div className="notice"><CircleHelp size={18} /><span>В {data.summary.missing_cost_rows} записях не указана себестоимость. Добавьте её в продажи для расчёта прибыли.</span></div>}
       <div className="chart-grid"><RevenueChart data={data.revenue} total={data.summary.revenue} /><ExpenseChart data={data.expenses} /></div>
       <section className="panel product-panel"><div className="panel-heading"><div><h2>Прибыльность товаров</h2><p>Какие товары приносят бизнесу больше всего</p></div><Link className="text-link" to="/products">Все товары <ArrowRight size={16} /></Link></div><ProductTable data={data.products} compact /><div className="panel-footnote"><CircleHelp size={14} /> Валовая прибыль = выручка − себестоимость. Операционные расходы здесь не учитываются.</div></section>
+      <RecentInsights period={data.summary.period} />
       <div className="data-note"><CheckCircle2 size={15} /><span>Расчёты по загруженным данным. Отсутствие записей не означает отсутствие операций.</span><span className="currency-note">₸ Казахстанский тенге</span></div>
     </>}
   </>
@@ -305,4 +310,105 @@ function SettingsPage() {
     catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }
   return <><PageHeading eyebrow="РАБОЧЕЕ ПРОСТРАНСТВО" title="Мой бизнес" description="Профиль компании и основные параметры аналитики." /><div className="settings-grid"><section className="panel"><div className="panel-heading"><div><h2>Профиль бизнеса</h2><p>Текущее рабочее пространство</p></div><Building2 size={20} className="muted" /></div>{business ? <div className="business-profile"><span className="large-avatar">{business.name.slice(0, 1)}</span><h3>{business.name}</h3><span className="muted">{({ cafe: 'Кафе', retail: 'Розничная торговля', services: 'Услуги', other: 'Другое' } as Record<string, string>)[business.industry] || business.industry}</span><dl><div><dt>Валюта</dt><dd>Казахстанский тенге · KZT</dd></div><div><dt>Часовой пояс</dt><dd>Алматы · Asia/Almaty</dd></div><div><dt>Создан</dt><dd>{new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Almaty' }).format(new Date(business.created_at))}</dd></div></dl><Link className="button" to="/imports"><Upload size={16} />Загрузить данные</Link></div> : <Empty title="Создайте свой бизнес" text="Название и отрасль помогут организовать данные." />}</section><section className="panel"><div className="panel-heading"><div><h2>Добавить бизнес</h2><p>Отдельное пространство для каждой компании</p></div><Plus size={21} className="muted" /></div><form className="business-form" onSubmit={create}><label>Название бизнеса<input value={name} onChange={e => setName(e.target.value)} maxLength={200} placeholder="Например, Кофейня на Абая" required disabled={busy} /></label><label>Отрасль<select value={industry} onChange={e => setIndustry(e.target.value)} disabled={busy}><option value="cafe">Кафе и рестораны</option><option value="retail">Розничная торговля</option><option value="services">Услуги</option><option value="other">Другое</option></select></label><div className="fixed-fields"><span><Wallet size={16} /> KZT — тенге</span><span><CalendarDays size={16} /> Алматы</span></div><p className="form-hint">Продажи, расходы и товары каждого бизнеса хранятся отдельно.</p>{error && <p className="field-error" role="alert">{error}</p>}{success && <p className="success-text" role="status">{success}</p>}<Button className="primary" disabled={busy || !name.trim()}>{busy ? <LoaderCircle className="spin" size={17} /> : <Plus size={17} />}{busy ? 'Создаём…' : 'Создать бизнес'}</Button></form></section></div><section className="demo-card"><span className="demo-card-icon"><Sparkles size={26} /></span><div><h2>Посмотрите, как работает ProfitLeak</h2><p>Кафе в Таразе · 3 товара · 90 дней синтетических продаж и расходов</p></div><DemoButton /></section></>
+}
+
+const insightLabels: Record<InsightType, string> = {
+  EXPENSE_SPIKE: 'Рост расходов', MARGIN_DROP: 'Падение маржи',
+  LOW_PROFIT_PRODUCT: 'Низкая маржа', SALES_DROP: 'Снижение выручки',
+  POSSIBLE_DUPLICATE: 'Возможный дубликат',
+}
+const severityLabels: Record<Severity, string> = { high: 'Высокий', medium: 'Средний', low: 'Низкий' }
+function insightTitle(item: Insight) {
+  return `${insightLabels[item.type]}${item.type === 'SALES_DROP' ? '' : `: ${categoryLabel[item.evidence.entity] || productLabel[item.evidence.entity] || item.evidence.entity}`}`
+}
+function EvidenceValue({ value, unit }: { value: string | null; unit: 'KZT' | 'percent' }) {
+  return <>{value == null ? '—' : unit === 'percent' ? `${decimal(value)}%` : money(value)}</>
+}
+function InsightCard({ item }: { item: Insight }) {
+  return <article className="panel insight-card">
+    <div className="insight-card-top"><span className={`risk-badge ${item.severity}`}>Приоритет: {severityLabels[item.severity]}</span><span className="insight-kind">{insightLabels[item.type]}</span></div>
+    <h2><Link to={`/insights/${item.id}`}>{insightTitle(item)}</Link></h2>
+    <p>{item.evidence.explanation}</p>
+    <div className="insight-values"><div><span>Текущее значение</span><strong><EvidenceValue value={item.evidence.current_value} unit={item.evidence.value_unit} /></strong></div>{item.evidence.baseline_value != null && <div><span>Базовое значение</span><strong><EvidenceValue value={item.evidence.baseline_value} unit={item.evidence.value_unit} /></strong></div>}</div>
+    {item.evidence.deviation_percent != null && <span className="deviation">Изменение: {decimal(item.evidence.deviation_percent)}%</span>}
+    {item.evidence.deviation_pp != null && <span className="deviation">Изменение маржи: {decimal(item.evidence.deviation_pp)} п.п.</span>}
+    <div className="insight-card-footer"><span>{item.potential_savings_kzt != null ? <>Сценарная оценка: <strong>{money(item.potential_savings_kzt)}</strong></> : 'Экономия не оценена'}</span><Link className="text-link" to={`/insights/${item.id}`}>Разобрать сигнал <ArrowRight size={15} /></Link></div>
+  </article>
+}
+function RunAnalysisButton({ period: selected, onDone }: { period?: Period | null; onDone?: () => void }) {
+  const { business, period, refresh } = useWorkspace()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+  const scope = query(business!.id, selected === undefined ? period : selected)
+  const active = useRef(scope)
+  active.current = scope
+  useEffect(() => { setError(''); setMessage('') }, [scope])
+  async function run() {
+    setBusy(true); setError(''); setMessage('')
+    const requestedScope = scope
+    const chosen = selected === undefined ? period : selected
+    try {
+      const result = await api<Analysis>('/analysis/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ business_id: business!.id, ...chosen }) })
+      if (active.current === requestedScope) { setMessage(`Анализ завершён. Сигналов: ${result.insight_count}.`); onDone?.() }
+      refresh()
+    } catch (e) { if (active.current === requestedScope) setError((e as Error).message) }
+    finally { setBusy(false) }
+  }
+  return <div className="analysis-action"><Button className="primary" onClick={() => void run()} disabled={busy}>{busy ? <LoaderCircle className="spin" size={17} /> : <Activity size={17} />}{busy ? 'Анализируем…' : 'Запустить анализ'}</Button>{error && <p className="field-error" role="alert">{error}</p>}{message && <p className="success-text" role="status">{message}</p>}</div>
+}
+function AnalysisNotice({ analysis }: { analysis: Analysis }) {
+  return <div className={`notice analysis-notice ${analysis.stale ? 'stale' : ''}`}><CircleHelp size={18} /><div>{analysis.stale ? <strong>После анализа загружены новые данные. Запустите анализ повторно.</strong> : <span>Обновлено {new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' }).format(new Date(analysis.analyzed_at))} · {analysis.rules_version}</span>}{analysis.current_period && analysis.baseline_period && <p>Сравниваем {periodLabel(analysis.current_period)} с {periodLabel(analysis.baseline_period)}.</p>}<p>Сигналы требуют проверки. Сценарные оценки могут пересекаться, поэтому они не суммируются.</p></div></div>
+}
+function RecentInsights({ period }: { period: Period }) {
+  const { business, refresh } = useWorkspace()
+  const result = useRemote<Insights>(`/insights?${query(business!.id, period)}&limit=3`)
+  return <section className="recent-insights"><div className="section-heading"><div><h2>Сигналы для проверки</h2><p>Правила анализа и подтверждённые данные</p></div><Link className="text-link" to="/insights">Детектор проблем <ArrowRight size={16} /></Link></div>{result.loading ? <Loading /> : result.error ? <ErrorBox message={result.error} retry={refresh} /> : result.data && <>{!result.data.analysis ? <div className="panel"><Empty title="Проверьте расходы и маржу" text="Запустите анализ, чтобы получить сигналы с расчётами и рекомендациями."><RunAnalysisButton period={period} /></Empty></div> : <><AnalysisNotice analysis={result.data.analysis} />{result.data.items.length ? <div className="insight-grid">{result.data.items.map(item => <InsightCard key={item.id} item={item} />)}</div> : <div className="panel"><Empty title="Сигналов по правилам не найдено" text="Откройте детектор, чтобы проверить достаточность данных для каждого правила." /></div>}</>}</>}</section>
+}
+function DetectorPage() {
+  const { business, period, setEffectivePeriod, refresh } = useWorkspace()
+  const [severity, setSeverity] = useState<Severity | ''>('')
+  const [kind, setKind] = useState<InsightType | ''>('')
+  const [page, setPage] = useState({ scope: '', offset: 0 })
+  const scope = `${query(business!.id, period)}&severity=${severity}&kind=${kind}`
+  const offset = page.scope === scope ? page.offset : 0
+  const filters = new URLSearchParams()
+  if (severity) filters.set('severity', severity)
+  if (kind) filters.set('type', kind)
+  const result = useRemote<Insights>(`/insights?${query(business!.id, period)}&${filters}&limit=9&offset=${offset}`)
+  useEffect(() => { if (!period && result.data) setEffectivePeriod(result.data.period) }, [period, result.data, setEffectivePeriod])
+  return <><PageHeading eyebrow="ОБЪЯСНИМЫЙ АНАЛИЗ" title="Детектор проблем" description="Проверьте рост расходов, маржу, продажи и возможные повторные платежи." dates />
+    <div className="detector-toolbar"><div className="insight-filters"><label>Приоритет<select value={severity} onChange={e => setSeverity(e.target.value as Severity | '')}><option value="">Все приоритеты</option>{Object.entries(severityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>Тип сигнала<select value={kind} onChange={e => setKind(e.target.value as InsightType | '')}><option value="">Все типы</option>{Object.entries(insightLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div><RunAnalysisButton onDone={() => setPage({ scope, offset: 0 })} /></div>
+    {result.loading ? <Loading /> : result.error ? <ErrorBox message={result.error} retry={refresh} /> : result.data && <>
+      {!result.data.analysis ? <section className="panel"><Empty title="Анализ ещё не запускался" text="Запустите анализ для выбранного периода. Расчёты и рекомендации работают без подключения LLM." /></section> : <>
+        <AnalysisNotice analysis={result.data.analysis} />
+        {result.data.items.length ? <div className="insight-grid">{result.data.items.map(item => <InsightCard key={item.id} item={item} />)}</div> : <section className="panel"><Empty title={severity || kind ? 'Сигналов с такими фильтрами нет' : 'Сигналов по правилам не найдено'} text="Ниже показано, какие проверки удалось выполнить и где данных не хватило." /></section>}
+        {result.data.total > 9 && <div className="pagination"><span>{offset + 1}–{offset + result.data.items.length} из {result.data.total} сигналов</span><div><Button className="icon-button" disabled={!offset} aria-label="Предыдущие сигналы" onClick={() => setPage({ scope, offset: Math.max(0, offset - 9) })}><ChevronLeft size={17} /></Button><Button className="icon-button" disabled={offset + 9 >= result.data.total} aria-label="Следующие сигналы" onClick={() => setPage({ scope, offset: offset + 9 })}><ChevronRight size={17} /></Button></div></div>}
+        <section className="panel rule-panel"><div className="panel-heading"><div><h2>Достаточность данных</h2><p>Отсутствие сигнала не подтверждает отсутствие проблем.</p></div><CheckCircle2 size={20} className="muted" /></div><div className="rule-list">{result.data.analysis.checks.map(check => <div key={check.type}><div><strong>{insightLabels[check.type]}</strong><span className={`rule-status ${check.status}`}>{check.status === 'evaluated' ? `Проверено · сигналов: ${check.signals}` : 'Недостаточно данных'}</span></div><p>{check.reason}</p>{check.skipped_entities > 0 && <small>Пропущено объектов или записей: {check.skipped_entities}</small>}</div>)}</div></section>
+      </>}
+    </>}
+  </>
+}
+function InsightPage() {
+  const { insightId } = useParams()
+  const { business, refresh } = useWorkspace()
+  const result = useRemote<Insight>(`/insights/${insightId}?business_id=${business!.id}`)
+  const snapshot = useRemote<Insights>(result.data ? `/insights?${query(business!.id, result.data.period)}&limit=1` : null)
+  const item = result.data
+  return <><Link className="text-link back-link" to="/insights"><ChevronLeft size={16} />К списку сигналов</Link>{result.loading ? <Loading /> : result.error ? <ErrorBox message={result.error} retry={refresh} /> : item && <>
+    <PageHeading eyebrow={insightLabels[item.type].toUpperCase()} title={insightTitle(item)} description="Факты, исходные записи и действия для проверки." />
+    {snapshot.data?.analysis && <AnalysisNotice analysis={snapshot.data.analysis} />}
+    <div className="insight-detail-grid"><section className="panel evidence-panel"><div className="panel-heading"><div><h2>Что показали данные</h2><p>{periodLabel(item.evidence.current_period)}</p></div><span className={`risk-badge ${item.severity}`}>{severityLabels[item.severity]} приоритет</span></div><div className="evidence-body"><p>{item.evidence.explanation}</p><div className="insight-values"><div><span>Текущее значение</span><strong><EvidenceValue value={item.evidence.current_value} unit={item.evidence.value_unit} /></strong></div>{item.evidence.baseline_value != null && <div><span>Базовое значение</span><strong><EvidenceValue value={item.evidence.baseline_value} unit={item.evidence.value_unit} /></strong></div>}</div><dl className="evidence-facts">
+      {item.evidence.baseline_period && <div><dt>Базовый период</dt><dd>{periodLabel(item.evidence.baseline_period)}</dd></div>}
+      {item.evidence.deviation_percent != null && <div><dt>Изменение</dt><dd>{decimal(item.evidence.deviation_percent)}%</dd></div>}
+      {item.evidence.deviation_pp != null && <div><dt>Изменение маржи</dt><dd>{decimal(item.evidence.deviation_pp)} п.п.</dd></div>}
+      {item.evidence.current_revenue != null && <div><dt>Текущая выручка / COGS</dt><dd>{money(item.evidence.current_revenue)} / {money(item.evidence.current_cogs)}</dd></div>}
+      {item.evidence.baseline_revenue != null && <div><dt>Базовая выручка / COGS</dt><dd>{money(item.evidence.baseline_revenue)} / {money(item.evidence.baseline_cogs)}</dd></div>}
+      <div><dt>Текущие записи / дни</dt><dd>{item.evidence.current_rows} / {item.evidence.current_days}</dd></div>
+      {item.evidence.baseline_period && <div><dt>Базовые записи / дни</dt><dd>{item.evidence.baseline_rows} / {item.evidence.baseline_days}</dd></div>}
+      <div><dt>Достоверность сопоставления</dt><dd>{severityLabels[item.confidence]} уровень</dd></div>
+    </dl><div className="formula"><strong>Правило расчёта</strong><p>{item.evidence.formula}</p></div><p className="evidence-caveat">{item.evidence.caveat}</p></div></section>
+    <aside className="panel recommendation-panel"><span className="guide-icon"><Sparkles size={23} /></span><h2>Что проверить</h2><p>{item.recommendation}</p><span className="recommendation-source">Шаблонная рекомендация · работает без LLM</span><div className="savings-box"><small>Сценарная оценка за текущий период</small><strong>{item.potential_savings_kzt != null ? money(item.potential_savings_kzt) : 'Не оценена'}</strong><p>{item.evidence.savings_assumption || 'Данных для обоснованной оценки экономии недостаточно.'}</p><span>Оценка требует проверки и не гарантирует экономию.</span></div></aside></div>
+    <section className="panel sources-panel"><div className="panel-heading"><div><h2>Исходные записи</h2><p>Показано {item.evidence.source_rows.length} из {item.evidence.source_rows_total} строк, участвующих в расчёте. Для сравнения показаны примеры из обоих периодов.</p></div><FileSpreadsheet size={20} className="muted" /></div><div className="scroll-table"><table><thead><tr><th>Файл</th><th>Строка</th><th>Дата</th><th>Операция</th><th className="numeric">Сумма</th></tr></thead><tbody>{item.evidence.source_rows.map(row => <tr key={row.record_id}><td>{row.filename}</td><td>{row.source_row}</td><td>{dateLabel(row.date, true)}</td><td>{({ sale: 'Продажа', return: 'Возврат продажи', expense: 'Расход', refund: 'Возврат расхода' } as Record<string, string>)[row.record_type] || row.record_type}</td><td className="numeric">{money(row.amount)}</td></tr>)}</tbody></table></div><div className="panel-footnote">Строки возвратов показаны положительной суммой; в расчётах они вычитаются.</div></section>
+  </>}</>
 }

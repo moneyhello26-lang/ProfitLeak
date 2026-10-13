@@ -13,3 +13,8 @@ dist/
 *.tsbuildinfo
 .coverage
 htmlcov/
+.tmp/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

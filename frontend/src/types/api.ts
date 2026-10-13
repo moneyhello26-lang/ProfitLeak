@@ -158,6 +158,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analysis/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Analyze */
+        post: operations["analyze_api_v1_analysis_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Insight List */
+        get: operations["insight_list_api_v1_insights_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/insights/{insight_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Insight Detail */
+        get: operations["insight_detail_api_v1_insights__insight_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -179,6 +230,50 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnalysisRead */
+        AnalysisRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            period: components["schemas"]["Period"];
+            current_period: components["schemas"]["Period"] | null;
+            baseline_period: components["schemas"]["Period"] | null;
+            /**
+             * Analyzed At
+             * Format: date-time
+             */
+            analyzed_at: string;
+            /** Rules Version */
+            rules_version: string;
+            /** Insight Count */
+            insight_count: number;
+            /** Checks */
+            checks: components["schemas"]["RuleCheck"][];
+            /**
+             * Stale
+             * @default false
+             */
+            stale: boolean;
+        };
+        /** AnalysisRequest */
+        AnalysisRequest: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+        };
         /** Body_confirm_api_v1_imports_confirm_post */
         Body_confirm_api_v1_imports_confirm_post: {
             /**
@@ -444,6 +539,134 @@ export interface components {
             /** Confirmed At */
             confirmed_at: string | null;
         };
+        /** InsightEvidence */
+        InsightEvidence: {
+            /** Title */
+            title: string;
+            /** Explanation */
+            explanation: string;
+            /** Entity */
+            entity: string;
+            current_period: components["schemas"]["Period"];
+            baseline_period?: components["schemas"]["Period"] | null;
+            /** Current Value */
+            current_value: string;
+            /** Baseline Value */
+            baseline_value?: string | null;
+            /**
+             * Value Unit
+             * @default KZT
+             * @enum {string}
+             */
+            value_unit: "KZT" | "percent";
+            /** Deviation Percent */
+            deviation_percent?: string | null;
+            /** Deviation Pp */
+            deviation_pp?: string | null;
+            /** Threshold */
+            threshold?: string | null;
+            /** Formula */
+            formula: string;
+            /** Current Rows */
+            current_rows: number;
+            /**
+             * Baseline Rows
+             * @default 0
+             */
+            baseline_rows: number;
+            /** Current Days */
+            current_days: number;
+            /**
+             * Baseline Days
+             * @default 0
+             */
+            baseline_days: number;
+            /** Source Rows */
+            source_rows: components["schemas"]["SourceRow"][];
+            /** Source Rows Total */
+            source_rows_total: number;
+            /** Caveat */
+            caveat: string;
+            /** Savings Assumption */
+            savings_assumption?: string | null;
+            /** Product Id */
+            product_id?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Current Revenue */
+            current_revenue?: string | null;
+            /** Current Cogs */
+            current_cogs?: string | null;
+            /** Baseline Revenue */
+            baseline_revenue?: string | null;
+            /** Baseline Cogs */
+            baseline_cogs?: string | null;
+        };
+        /** InsightRead */
+        InsightRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "EXPENSE_SPIKE" | "MARGIN_DROP" | "LOW_PROFIT_PRODUCT" | "SALES_DROP" | "POSSIBLE_DUPLICATE";
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "low" | "medium" | "high";
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            period: components["schemas"]["Period"];
+            evidence: components["schemas"]["InsightEvidence"];
+            /** Potential Savings Kzt */
+            potential_savings_kzt: string | null;
+            /** Estimate Type */
+            estimate_type: "scenario" | null;
+            /** Recommendation */
+            recommendation: string;
+            /**
+             * Recommendation Source
+             * @default template
+             * @constant
+             */
+            recommendation_source: "template";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** InsightsRead */
+        InsightsRead: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            period: components["schemas"]["Period"];
+            analysis: components["schemas"]["AnalysisRead"] | null;
+            /** Items */
+            items: components["schemas"]["InsightRead"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
         /** Metric */
         Metric: {
             /** Value */
@@ -581,6 +804,28 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** RuleCheck */
+        RuleCheck: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "EXPENSE_SPIKE" | "MARGIN_DROP" | "LOW_PROFIT_PRODUCT" | "SALES_DROP" | "POSSIBLE_DUPLICATE";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "evaluated" | "insufficient_data";
+            /** Signals */
+            signals: number;
+            /** Reason */
+            reason: string;
+            /**
+             * Skipped Entities
+             * @default 0
+             */
+            skipped_entities: number;
+        };
         /** SalesRow */
         SalesRow: {
             /**
@@ -604,6 +849,32 @@ export interface components {
              * @enum {string}
              */
             record_type: "sale" | "return";
+        };
+        /** SourceRow */
+        SourceRow: {
+            /**
+             * Record Id
+             * Format: uuid
+             */
+            record_id: string;
+            /**
+             * Import Id
+             * Format: uuid
+             */
+            import_id: string;
+            /** Filename */
+            filename: string;
+            /** Source Row */
+            source_row: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Record Type */
+            record_type: string;
+            /** Amount */
+            amount: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -741,7 +1012,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Content Too Large */
+            /** @description Request Entity Too Large */
             413: {
                 headers: {
                     [name: string]: unknown;
@@ -759,7 +1030,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Unprocessable Content */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -819,7 +1090,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Content Too Large */
+            /** @description Request Entity Too Large */
             413: {
                 headers: {
                     [name: string]: unknown;
@@ -837,7 +1108,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Unprocessable Content */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1085,6 +1356,163 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductsAnalytics"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyze_api_v1_analysis_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalysisRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisRead"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    insight_list_api_v1_insights_get: {
+        parameters: {
+            query: {
+                business_id: string;
+                severity?: ("low" | "medium" | "high") | null;
+                type?: ("EXPENSE_SPIKE" | "MARGIN_DROP" | "LOW_PROFIT_PRODUCT" | "SALES_DROP" | "POSSIBLE_DUPLICATE") | null;
+                limit?: number;
+                offset?: number;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsightsRead"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    insight_detail_api_v1_insights__insight_id__get: {
+        parameters: {
+            query: {
+                business_id: string;
+            };
+            header?: never;
+            path: {
+                insight_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsightRead"];
                 };
             };
             /** @description Bad Request */

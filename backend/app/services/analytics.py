@@ -44,6 +44,7 @@ def confirmed(model):
     return (
         select(ImportBatch.id)
         .where(ImportBatch.id == model.import_id, ImportBatch.status == "confirmed")
+        .correlate(model)
         .exists()
     )
 
@@ -134,7 +135,7 @@ def sales_groups(db: Session, business_id: UUID, period: Period, group_by: str |
         .execution_options(yield_per=1000)
     )
     groups = {}
-    # Stream exact NUMERIC values from PostgreSQL; all financial arithmetic is Decimal.
+    # Storage converts fixed point values to Decimal; financial arithmetic stays in Python.
     with localcontext() as context, db.execute(statement) as records:
         context.prec = 64
         for record in records:

@@ -1,3 +1,3 @@
-from app.models.entities import Business, Expense, ImportBatch, Insight, Product, Sale
+from app.models.entities import AnalysisRun, Business, Expense, ImportBatch, Insight, Product, Sale
 
-__all__ = ["Business", "Expense", "ImportBatch", "Insight", "Product", "Sale"]
+__all__ = ["AnalysisRun", "Business", "Expense", "ImportBatch", "Insight", "Product", "Sale"]

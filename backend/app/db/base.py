@@ -1,8 +1,10 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, MetaData, func
+from sqlalchemy import MetaData, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from app.db.types import UTCDateTime
 
 
 class Base(DeclarativeBase):
@@ -19,4 +21,4 @@ class Base(DeclarativeBase):
 
 class RecordMixin:
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())

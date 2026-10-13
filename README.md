@@ -1,217 +1,182 @@
 # ProfitLeak AI
 
-Financial analytics for small businesses in Taraz. React, FastAPI, and PostgreSQL
-are the implemented stack. The backend currently provides database models and migrations,
-a health endpoint, business profiles, CSV/XLSX import, a repeatable 90 day demo,
-and financial analytics. The Russian React interface includes a dashboard, revenue
-and expense charts, product profitability, file import, and business profiles.
+Локальный сервис финансовой аналитики для малого бизнеса: React + TypeScript,
+FastAPI и SQLite. Docker и отдельный сервер базы данных для запуска не нужны.
+Интерфейс на русском, валюта KZT. Импорт CSV/XLSX, финансовый дашборд, прибыльность
+товаров и детектор с доказательствами и рекомендациями уже реализованы.
 
-## Local setup
+## Быстрый запуск
 
-Requires Python 3.11+ and Docker Desktop with Linux containers running. From the
-repository root in PowerShell:
+На этом компьютере зависимости подготовлены. Из корня проекта в PowerShell:
+
+```powershell
+.\start.ps1
+```
+
+Если PowerShell запрещает запуск локального скрипта:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start.ps1
+```
+
+Скрипт применяет миграции, запускает backend и frontend и проверяет их готовность.
+Откройте **http://127.0.0.1:5173**. API: **http://127.0.0.1:8000/docs**.
+Ctrl+C останавливает оба сервера. Скрипт использует SQLite независимо от старого
+DATABASE_URL в окружении; файл базы — `backend/profitleak.db`.
+
+## Установка на другом компьютере
+
+Нужны Python 3.11+ и Node.js 22.18+. Команды из корня проекта:
+
+```powershell
+python -m venv backend/.venv
+backend/.venv/Scripts/python.exe -m pip install -e './backend[dev]'
+npm.cmd --prefix frontend ci
+.\start.ps1
+```
+
+`.env` необязателен: SQLite настроена по умолчанию. Для изменения параметров:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d db
-python -m venv backend/.venv
-backend/.venv/Scripts/python.exe -m pip install -e './backend[dev]'
-backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini upgrade head
-backend/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir backend --reload
 ```
 
-Open `http://localhost:8000/docs` for the API and `http://localhost:8000/api/v1/health`
-for the database health check. The health endpoint returns HTTP 503 if PostgreSQL
-is unavailable. Startup never creates database tables; run migrations explicitly.
-Local database credentials in `.env.example` are for development.
+Относительный путь SQLite разрешается относительно корня проекта, поэтому база
+не меняется при запуске из другой рабочей папки. Файл БД и `.env` исключены из Git.
 
-In a second terminal, start the frontend (Node.js 22.18+ required):
+Запуск вручную, в двух терминалах:
 
 ```powershell
-cd frontend
-npm.cmd ci --offline=false
-npm.cmd run dev
+backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini upgrade head
+backend/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1
 ```
 
-Open **http://127.0.0.1:5173**. Create a business under **Мой бизнес**, or click
-**Открыть демо-бизнес** to load the Taraz cafe. An existing business is restored
-from the browser's last selection. Dashboard and product pages support date filters;
-the default covers 90 days ending at the latest confirmed data. CSV templates are
-available on the import page. Preview and confirmation use the backend API.
+```powershell
+npm.cmd --prefix frontend run dev
+```
 
-Vite proxies `/api` to `http://127.0.0.1:8000`, so both servers must be running.
-For a production static build, configure the hosting server to proxy `/api` to
-FastAPI and return `index.html` for React routes. `vite preview` alone does not
-provide this production API setup.
+Миграции выполняются явно; запуск FastAPI сам по себе таблицы не создаёт. Vite
+проксирует `/api` на backend. Для production-хостинга нужна такая же настройка
+прокси; `vite preview` сам по себе её не предоставляет.
 
-## Data models
+## Демонстрация
 
-| Model | Purpose |
+1. Нажмите **Открыть демо-бизнес**: загрузятся 90 дней синтетических данных кафе
+   Тараза, с 04.07.2026 по 01.10.2026. Повторная загрузка не дублирует строки.
+2. Проверьте выручку **5 454 000 ₸**, COGS **2 475 000 ₸**, валовую прибыль
+   **2 979 000 ₸** и операционную прибыль **2 242 500 ₸**.
+3. Откройте **Детектор проблем** → **Запустить анализ**. Для периода по умолчанию
+   будут найдены рост расходов на упаковку, падение маржи кофе и возможный дубликат.
+4. Откройте каждый сигнал: сравнение, формула, исходные файлы/строки, рекомендация
+   и условия сценарной оценки. Сигналы также отображаются в обзоре.
+5. Новый импорт помечает сохранённый анализ устаревшим. Повторный анализ обновляет
+   сигналы выбранного периода с прежними ID, не затрагивая другие периоды/бизнесы.
+
+Расходы на упаковку: **30 000 → 46 500 ₸, +55%**. Маржа кофе:
+**62,50% → 25,00%, −37,50 п.п.**. Две одинаковые записи упаковки на 01.10.2026
+имеют разные исходные строки и требуют проверки документов. Сценарные оценки
+16 500 и 337 500 ₸ могут пересекаться и не суммируются. Они не являются
+доказанным ущербом или гарантированной экономией.
+
+## Данные и точность
+
+Модели: Business, Product, ImportBatch, Sale, Expense, Insight, AnalysisRun.
+Каждый запрос ограничен бизнесом; составные внешние ключи запрещают связывать
+продажи и расходы с чужими товарами/импортами. SQLite включает внешние ключи и
+транзакции; изменения и подтверждение импорта атомарны.
+
+SQLite хранит деньги целыми сотыми долями, количество — целыми тысячными.
+SQLAlchemy возвращает Python Decimal. Финансовые расчёты выполняются в Python:
+каждая строка округляется до копеек half-away-from-zero, затем суммируется.
+Числа не преобразуются в float для хранения или расчётов. API передаёт суммы
+десятичными строками; в интерфейсе Number используется только для графиков.
+
+`record_type=return` уменьшает продажи/себестоимость/количество;
+`record_type=refund` уменьшает расходы. Суммы во входных файлах положительные.
+Скидки учитываются в фактической цене продажи. Расходы представляют операционные
+затраты; себестоимость товаров уже учитывается в продажах. Налоги не выводятся
+из отсутствующих данных.
+
+Отсутствующая себестоимость делает прибыль и маржу недоступными. Отсутствующие
+дни не считаются нулевыми продажами. Правила показывают статус достаточности
+данных, окна сравнения и пороги. См. [реализацию требований](REQUIREMENTS.md).
+
+## Импорт CSV и XLSX
+
+1. Создайте бизнес в **Мой бизнес** или `POST /api/v1/businesses`.
+2. На странице импорта выберите тип и файл; **Проверить файл** выполняет
+   `/api/v1/imports/preview` без сохранения финансовых записей.
+3. Исправьте ошибки по строкам/колонкам. **Подтвердить импорт** отправляет тот же
+   файл с preview_token в `/api/v1/imports/confirm`. Токен действует 15 минут.
+4. Повторный файл или нормализованное содержимое не создают повторный импорт.
+   Перестановка строк и пробелы не обходят эту защиту; одинаковые строки внутри
+   файла сохраняются для проверки возможных дублей платежей.
+
+CSV: UTF-8, разделитель запятая, дата `YYYY-MM-DD`. XLSX: один лист с теми же
+заголовками, без формул. Формулы с кешированными значениями также отклоняются.
+
+| Тип | Колонки |
 | --- | --- |
-| Business | Business profile, KZT currency, Asia/Almaty timezone |
-| Product | Business scoped external product ID and product metadata |
-| ImportBatch | File digest, import type/status, row count and confirmation timestamp |
-| Sale | Product, business date, quantity, price/cost, import and source row |
-| Expense | Category, description, amount, business date, import and source row |
-| Insight | Rule type, severity, confidence, period, JSON evidence and scenario savings |
+| sales | date,product_id,product_name,quantity,unit_price,unit_cost |
+| expenses | date,category,description,amount |
+| products | product_id,name; необязательная category |
 
-IDs are UUIDs; timestamps include timezone information. Money uses `NUMERIC(18,2)`
-and Python `Decimal`; quantities use `NUMERIC(18,3)`. Missing unit cost remains null
-so analytics can report insufficient data. Composite foreign keys prevent a sale
-or expense from referencing another business's product or import.
+Продажи/расходы принимают необязательную record_type. unit_cost и description
+можно оставить пустыми. Товары создаются из продаж; импорт товаров обновляет их
+названия/категории. Неизвестные и повторные заголовки отклоняются.
 
-File digest and normalized content uniqueness prevent the same data from being
-imported again for the same business and type. Normalization ignores row order,
-surrounding whitespace and decimal trailing zeroes, while retaining repeated rows.
-Source row uniqueness prevents inserting an import row twice. Different rows with
-identical expense values remain available to the future possible duplicate detector.
-Partially overlapping files with different contents are separate imports.
+Лимиты: 10 МБ, 20 000 строк, 32 колонки, 50 МБ распакованного XLSX и 100 ошибок
+в ответе. Шаблоны доступны в интерфейсе и `demo_data/`.
 
-Sales and expenses store positive magnitudes. `record_type=return` reverses a sale;
-`record_type=refund` reverses an expense in the analytics service. Standard
-CSV templates default to `sale` and `expense`. Discounts should be included in the
-effective unit price for this schema. Returns use the price and cost from the
-original transaction. Expense imports represent operating expenses; product costs
-already represented by `unit_cost` belong in sales data.
+## API и рекомендации
 
-## Import API
+| Endpoint | Результат |
+| --- | --- |
+| GET /api/v1/health | Готовность сервера/БД |
+| POST /api/v1/demo/load | Повторяемое демо |
+| GET /api/v1/dashboard/summary | KPI |
+| GET /api/v1/analytics/revenue | Дневная выручка |
+| GET /api/v1/analytics/expenses | Расходы по категориям |
+| GET /api/v1/analytics/products | Прибыльность товаров |
+| POST /api/v1/analysis/run | Анализ и статусы пяти правил |
+| GET /api/v1/insights | Сигналы, severity/type и пагинация |
+| GET /api/v1/insights/{id} | Доказательства и рекомендация |
 
-This local MVP accepts synthetic demonstration data. It has no authentication yet;
-use it locally until account access controls are implemented.
+Аналитика и сигналы требуют business_id, принимают date_from/date_to включительно.
+Период 1–366 дней; по умолчанию 90 дней до последней подтверждённой даты данных.
+POST анализа принимает те же поля в JSON. Описание правил и сценарий приёмки
+находятся в `REQUIREMENTS.md`; независимые ожидаемые результаты — в `demo_data/`.
 
-1. Create a business with `POST /api/v1/businesses` and JSON
-   `{"name":"Кафе Тараз","industry":"cafe"}`. Save the returned `id`.
-2. Send `POST /api/v1/imports/preview` as multipart form data with `business_id`,
-   `kind` (`sales`, `expenses`, or `products`), and `file`.
-3. Preview returns the first 20 valid rows, row/column errors, `can_confirm`, and
-   a token that expires after 15 minutes. Preview creates no database records.
-4. If `can_confirm` is true, send the same form and file to
-   `POST /api/v1/imports/confirm`, adding `preview_token`. All rows and product
-   creation are committed in one transaction. Changed files, changed business/type,
-   invalid signatures, and expired tokens are rejected.
-5. Repeating confirmation with a valid token returns the existing import with
-   `already_imported=true`. Preview of existing content returns `existing_import_id`
-   without offering confirmation. `GET /api/v1/imports?business_id=<id>` lists history.
+Рекомендации сейчас шаблонные, на русском. Весь сценарий работает без LLM и
+API-ключей. Интеграция внешнего LLM, чат Advisor, PDF и казахская локализация
+остаются следующими этапами. Сервис пока предназначен для локального демо на
+синтетических данных; аккаунты и роли ещё не реализованы.
 
-The interactive API at `/docs` supports this flow. Example CSV templates are in
-`demo_data/`. CSV uses UTF-8 (BOM accepted), comma separators, and ISO `YYYY-MM-DD`
-dates. XLSX must have one worksheet with the same headers; date cells are supported.
-Formulas are rejected, including cells that have cached formula results.
-
-Sales require `date,product_id,product_name,quantity,unit_price,unit_cost`; cost can
-be blank. Expenses require `date,category,description,amount`; description can be
-blank. Products require `product_id,name` and optionally `category`. Sales and
-expenses accept the optional `record_type` column described above. Unknown or
-duplicate headers are rejected. Products are created automatically from sales;
-product imports update name/category for existing external IDs.
-
-Limits: 10 MB per file, 20,000 rows, 32 columns, 50 MB expanded XLSX content, and
-100 reported errors. `errors_truncated` indicates additional errors. Decimal values
-are validated before storage; excessive precision, nonfinite and negative values
-are rejected. Response amounts are decimal strings.
-
-Set `IMPORT_SIGNING_KEY` to a random server secret before deployment and use the
-same key across workers. The example key is for local demos. Preview tokens are
-stateless and bound to file bytes, business, and type; confirmation reuploads the
-file, so the server does not keep preview files.
-
-## API contract
-
-The current implemented contract is tracked in `shared/openapi.json`. After changing
-endpoint schemas, regenerate it from FastAPI:
+Контракт и типы обновляются вместе:
 
 ```powershell
 backend/.venv/Scripts/python.exe backend/scripts/export_openapi.py
-backend/.venv/Scripts/python.exe backend/scripts/export_openapi.py --check
+npm.cmd --prefix frontend run generate:api
 ```
 
-The contract covers business, import, demo, dashboard and analytics endpoints. It
-will expand with insight endpoints next. The React client uses generated types in
-`frontend/src/types/api.ts`. Regenerate those types after changing the contract:
+## Проверки
+
+Все тесты БД используют изолированную SQLite и не требуют TEST_DATABASE_URL.
+Они не обращаются к рабочему `backend/profitleak.db`.
 
 ```powershell
-cd frontend
-npm.cmd run generate:api
-```
-
-## Demo and analytics
-
-Send `POST /api/v1/demo/load` with no request body. It creates a synthetic Taraz
-cafe with 90 days of data from **2026-07-04 through 2026-10-01**, three products,
-270 sales rows and 274 expense rows. The response includes its `business.id`.
-Repeated loads use the same business and imports, report `already_loaded=true`,
-and preserve row counts. All three imports and business creation are atomic.
-
-Use that business ID with these GET endpoints:
-
-| Endpoint | Result |
-| --- | --- |
-| `/api/v1/dashboard/summary` | Revenue, COGS, gross profit, gross margin, operating expenses/profit |
-| `/api/v1/analytics/revenue` | Daily revenue points with sales row counts |
-| `/api/v1/analytics/expenses` | Net expenses by category, including refunds |
-| `/api/v1/analytics/products` | Product profitability, sorted by gross profit, with pagination |
-
-Every analytics endpoint requires `business_id` and accepts inclusive `date_from`
-and `date_to` filters. The maximum range is 366 days. Without dates, the range ends
-on the latest confirmed sales/expense date and covers 90 days; an empty business
-uses its local current date. If only `date_from` is provided, the range starts
-there and covers 90 days; if only `date_to` is provided, it ends there and covers
-90 days. Product results accept `limit` (1–100, default 50) and `offset`.
-
-All calculations use confirmed imports. PostgreSQL stores exact `NUMERIC` values;
-Python streams the records and calculates financial amounts with `Decimal`.
-Each sale line's revenue and cost is rounded to two decimals
-using half away from zero, then summed. Returns reverse those line amounts;
-refunds reduce operating expenses. Gross margin is gross profit divided by net
-revenue, rounded to two decimal places. No tax is inferred.
-
-KPI fields use `{value, status, reason}`; values are decimal strings or null.
-`status` is `available`, `insufficient_data`, or `not_applicable`. Missing unit
-cost makes COGS, gross profit/margin and operating profit unavailable. No expense
-records in the selected period makes operating expenses/profit unavailable. Zero
-net revenue makes margin not applicable. Revenue points include every requested
-day; days without records have null values. This does not establish complete
-accounting coverage for days or categories omitted from uploaded files.
-
-The demo seeds a packaging expense spike, coffee margin decline and possible
-duplicate packaging payment for the upcoming detector. Expected results and
-scenario calculations are in [demo data notes](demo_data/README.md).
-Export the generated files for manual import:
-
-```powershell
-backend/.venv/Scripts/python.exe backend/scripts/generate_demo.py
-```
-
-## Verification
-
-Frontend type checks, production bundle, and financial display precision checks:
-
-```powershell
-cd frontend
-npm.cmd test
-npm.cmd run build
-```
-
-The UI preserves exact decimal strings in cards, tables and tooltips. Numeric
-conversion is limited to plotting. Days without records stay missing, and margin
-or profit with incomplete costs remains unavailable. Desktop and 390px mobile
-layouts, date filtering, daily revenue tables and navigation were checked in Chrome.
-Automated browser file selection requires the Chrome extension's local file access;
-that setting was disabled during verification, so upload UI automation was not
-completed. The backend import flow is covered by the integration tests below.
-
-```powershell
-$env:TEST_DATABASE_URL = 'postgresql+psycopg://profitleak:profitleak_local@127.0.0.1:55432/profitleak'
 backend/.venv/Scripts/python.exe -m pytest backend/tests -q
 backend/.venv/Scripts/python.exe -m ruff check backend
 backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini check
+backend/.venv/Scripts/python.exe backend/scripts/export_openapi.py --check
+npm.cmd --prefix frontend test
+npm.cmd --prefix frontend run build
 ```
 
-PostgreSQL integration tests create a unique schema inside a transaction and roll
-back all test DDL and data; they do not alter the application's tables. Without
-`TEST_DATABASE_URL`, those tests are skipped. Tests cover exact monetary values,
-tenant references, invalid values, import duplication, savings labels, migration
-consistency, migration reversal, hand calculated KPIs, returns/refunds, missing
-data, date filters, pagination, and repeatable demo loading.
+Тесты проверяют независимые KPI/демосигналы, точность больших сумм, возвращённые
+операции, отсутствующие данные, малые выборки, доказательства, изоляцию бизнесов,
+повторный импорт/анализ, устаревшие результаты, откат и соответствие миграций.
 
-See [the development plan](DEVELOPMENT_PLAN.md) for the remaining implementation stages.
+PostgreSQL остаётся дополнительным вариантом: установите `./backend[postgres]`
+и укажите DATABASE_URL вручную. Docker Compose не является частью основного
+запуска. PostgreSQL в текущей итерации не проверялась.
