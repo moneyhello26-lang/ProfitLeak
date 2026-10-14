@@ -12,11 +12,11 @@ This file maps those requirements to implementation; it does not replace the sou
 | FR-05 Expense anomalies | Rule based category comparison with explicit minimum samples |
 | FR-06 Product profitability | Revenue, COGS, profit/margin, pagination and product rules |
 | FR-07 Evidence cards | Detector, priority/type filters, detail route, periods, formulas and source rows |
-| FR-08 Recommendations | Deterministic Russian templates; full flow works without an LLM. Provider integration remains pending |
+| FR-08 Recommendations | Russian templates plus Gemini/OpenAI explanations with verified fact substitution, provider-specific consent, bounded history, cache and quota pause |
 | FR-09 Dates | Inclusive 1–366 day filters on analytics and analysis |
 | FR-10 Demo | Repeatable 90 day Taraz cafe; three independently checked detector scenarios |
-| FR-11 Advisor chat | Pending P1 |
-| FR-12 PDF | Pending P1 |
+| FR-11 Advisor chat | Business/date scoped chat, bounded transient history, source labels and backend facts; offline fallback |
+| FR-12 PDF | Local PDF with KPIs, expenses, products, evidence, recommendations and stale/missing analysis notices |
 | FR-13 Kazakh language | Pending P1; Russian interface implemented |
 | FR-14 Period comparison | Detector compares equal windows; general comparison dashboard remains P1 |
 | FR-15 Forecasts | Pending P2 |

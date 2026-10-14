@@ -46,6 +46,10 @@ def make_engine(url: str, **kwargs) -> Engine:
 
 def get_db(request: Request) -> Generator[Session, None, None]:
     with Session(get_engine()) as session:
-        if get_engine().dialect.name == "sqlite" and request.method == "POST":
+        if (
+            get_engine().dialect.name == "sqlite"
+            and request.method == "POST"
+            and request.url.path != "/api/v1/advisor/chat"
+        ):
             session.connection(execution_options={"sqlite_write": True})
         yield session

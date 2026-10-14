@@ -209,6 +209,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/advisor/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Connection Status */
+        get: operations["connection_status_api_v1_advisor_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/advisor/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Chat */
+        post: operations["chat_api_v1_advisor_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Report */
+        get: operations["report_api_v1_reports_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -230,6 +281,105 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdvisorFact */
+        AdvisorFact: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "summary" | "insight";
+            /** Insight Id */
+            insight_id?: string | null;
+        };
+        /** AdvisorRequest */
+        AdvisorRequest: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            /** Message */
+            message: string;
+            /** History */
+            history?: components["schemas"]["ChatMessage"][];
+            /** Insight Id */
+            insight_id?: string | null;
+            /**
+             * Allow External
+             * @default false
+             */
+            allow_external: boolean;
+            /** External Provider */
+            external_provider?: ("openai" | "gemini") | null;
+        };
+        /** AdvisorResponse */
+        AdvisorResponse: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            period: components["schemas"]["Period"];
+            /** Answer */
+            answer: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "llm" | "template";
+            /** Model */
+            model?: string | null;
+            /** Provider */
+            provider?: ("openai" | "gemini") | null;
+            /**
+             * Cached
+             * @default false
+             */
+            cached: boolean;
+            /** Retry After Seconds */
+            retry_after_seconds?: number | null;
+            /** Fallback Reason */
+            fallback_reason?: ("disabled" | "missing_key" | "consent_required" | "timeout" | "connection_error" | "authentication_error" | "rate_limit" | "quota_exhausted" | "model_error" | "provider_error" | "invalid_response") | null;
+            /** Facts */
+            facts: components["schemas"]["AdvisorFact"][];
+            /**
+             * Analysis Status
+             * @enum {string}
+             */
+            analysis_status: "not_run" | "current" | "stale";
+            /**
+             * Disclaimer
+             * @default Сигналы и сценарные оценки требуют проверки; экономия не гарантируется.
+             */
+            disclaimer: string;
+        };
+        /** AdvisorStatus */
+        AdvisorStatus: {
+            /** Enabled */
+            enabled: boolean;
+            /** Ready */
+            ready: boolean;
+            /**
+             * Provider
+             * @default openai
+             * @enum {string}
+             */
+            provider: "openai" | "gemini";
+            /** Model */
+            model: string;
+            /** Fallback Reason */
+            fallback_reason: ("disabled" | "missing_key" | "consent_required" | "timeout" | "connection_error" | "authentication_error" | "rate_limit" | "quota_exhausted" | "model_error" | "provider_error" | "invalid_response") | null;
+        };
         /** AnalysisRead */
         AnalysisRead: {
             /**
@@ -353,6 +503,16 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** ChatMessage */
+        ChatMessage: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
         };
         /** DashboardSummary */
         DashboardSummary: {
@@ -1513,6 +1673,128 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InsightRead"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    connection_status_api_v1_advisor_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdvisorStatus"];
+                };
+            };
+        };
+    };
+    chat_api_v1_advisor_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdvisorRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdvisorResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_api_v1_reports_pdf_get: {
+        parameters: {
+            query: {
+                business_id: string;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Financial PDF report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
                 };
             };
             /** @description Bad Request */

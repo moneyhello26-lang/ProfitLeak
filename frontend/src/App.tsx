@@ -4,9 +4,10 @@ import { Link, NavLink, Route, Routes, useLocation, useNavigate, useParams } fro
 import { Activity, ArrowDownToLine, ArrowRight, ArrowUpRight, BarChart3, Building2, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, FileSpreadsheet, LayoutDashboard, LoaderCircle, Menu, Package, Plus, RefreshCw, Settings2, Sparkles, Upload, Wallet, X, AlertCircle, TrendingUp, Layers3 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { api, categoryLabel, dateLabel, decimal, kindLabel, metricReason, money, periodLabel, productLabel, query } from './lib/api'
+import { api, categoryLabel, dateLabel, decimal, downloadPdf, kindLabel, metricReason, money, periodLabel, productLabel, query } from './lib/api'
 import type { Business, Demo, Expenses, ImportConfirmation, ImportKind, ImportPreview, ImportRead, Metric, Period, Products, Revenue, Summary } from './lib/api'
 import type { Analysis, Insight, Insights, InsightType, Severity } from './lib/api'
+import type { AdvisorReply, AdvisorStatus } from './lib/api'
 
 type Workspace = {
   businesses: Business[]; business: Business | null; selectBusiness: (id: string) => void
@@ -85,6 +86,7 @@ export default function App() {
     <Route path="/imports" element={value.business ? <ImportPage key={businessId} /> : <Welcome />} />
     <Route path="/insights" element={value.business ? <DetectorPage /> : <Welcome />} />
     <Route path="/insights/:insightId" element={value.business ? <InsightPage /> : <Welcome />} />
+    <Route path="/advisor" element={value.business ? <AdvisorPage /> : <Welcome />} />
     <Route path="/settings" element={<SettingsPage />} />
     <Route path="*" element={<Empty title="Страница не найдена" text="Вернитесь к обзору вашего бизнеса."><Link className="button primary" to="/">К обзору</Link></Empty>} />
   </Routes>}</Shell></WorkspaceContext.Provider>
@@ -105,6 +107,7 @@ function Shell({ children }: { children: ReactNode }) {
   const links: { to: string; label: string; icon: LucideIcon }[] = [
     { to: '/', label: 'Обзор', icon: LayoutDashboard }, { to: '/products', label: 'Товары', icon: Package },
     { to: '/insights', label: 'Детектор проблем', icon: Activity },
+    { to: '/advisor', label: 'AI-советник', icon: Sparkles },
     { to: '/imports', label: 'Импорт данных', icon: ArrowDownToLine }, { to: '/settings', label: 'Мой бизнес', icon: Settings2 },
   ]
   return <div className="app-shell">
@@ -125,9 +128,22 @@ function Shell({ children }: { children: ReactNode }) {
   </div>
 }
 
-function PageHeading({ eyebrow, title, description, dates = false }: { eyebrow: string; title: string; description: string; dates?: boolean }) {
+function PageHeading({ eyebrow, title, description, dates = false, reportPeriod }: { eyebrow: string; title: string; description: string; dates?: boolean; reportPeriod?: Period }) {
   const { refresh } = useWorkspace()
-  return <div className="page-heading"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><div className="heading-actions">{dates && <DateFilter />}<Button className="icon-button" onClick={refresh} aria-label="Обновить данные" title="Обновить данные"><RefreshCw size={17} /></Button></div></div>
+  return <div className="page-heading"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><div className="heading-actions">{dates && <DateFilter />}{(dates || reportPeriod) && <PdfButton selected={reportPeriod} />}<Button className="icon-button" onClick={refresh} aria-label="Обновить данные" title="Обновить данные"><RefreshCw size={17} /></Button></div></div>
+}
+
+function PdfButton({ selected }: { selected?: Period }) {
+  const { business, period } = useWorkspace()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  async function save() {
+    setBusy(true); setError('')
+    try { await downloadPdf(business!.id, selected || period) }
+    catch (e) { setError((e as Error).message) }
+    finally { setBusy(false) }
+  }
+  return <div className="pdf-action"><Button onClick={() => void save()} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin" /> : <ArrowDownToLine size={16} />}{busy ? 'Готовим PDF…' : 'Скачать PDF'}</Button>{error && <span className="field-error" role="alert">{error}</span>}</div>
 }
 
 function DateFilter() {
@@ -241,6 +257,14 @@ function Welcome() {
 }
 
 const columnLabel: Record<string, string> = { date: 'Дата', product_id: 'ID товара', product_name: 'Товар', quantity: 'Количество', unit_price: 'Цена', unit_cost: 'Себестоимость', record_type: 'Тип записи', category: 'Категория', description: 'Описание', amount: 'Сумма', name: 'Название' }
+function importTypeHint(preview: ImportPreview | null): ImportKind | null {
+  if (!preview) return null
+  const unknown = new Set(preview.errors.filter(error => error.row === 1 && error.message === 'Неизвестная колонка.').map(error => error.field))
+  const candidate = unknown.has('quantity') && unknown.has('unit_price') ? 'sales'
+    : unknown.has('description') && unknown.has('amount') ? 'expenses'
+    : unknown.has('name') ? 'products' : null
+  return candidate !== preview.kind ? candidate : null
+}
 function ImportPage() {
   const { business, refresh, revision } = useWorkspace()
   const [kind, setKind] = useState<ImportKind>('sales')
@@ -258,7 +282,8 @@ function ImportPage() {
   useEffect(() => () => request.current?.abort(), [])
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
   useEffect(() => { setHistoryLimit(20) }, [revision])
-  function reset() { request.current?.abort(); request.current = null; setPreview(null); setBusy(null); setError(''); setSuccess(''); setFile(null); if (fileInput.current) fileInput.current.value = '' }
+  function reset(keepFile = false) { request.current?.abort(); request.current = null; setPreview(null); setBusy(null); setError(''); setSuccess(''); if (!keepFile) { setFile(null); if (fileInput.current) fileInput.current.value = '' } }
+  function changeKind(next: ImportKind) { reset(true); setKind(next) }
   function choose(candidate: File | undefined) {
     reset(); if (!candidate) return
     if (!/\.(csv|xlsx)$/i.test(candidate.name)) { setError('Выберите файл CSV или XLSX.'); return }
@@ -284,15 +309,16 @@ function ImportPage() {
   }
   const expired = !!preview?.expires_at && Date.parse(preview.expires_at) <= now
   const columns = preview?.preview[0] ? Object.keys(preview.preview[0].data) : []
+  const suggestedKind = importTypeHint(preview)
   return <><PageHeading eyebrow="ДАННЫЕ ВАШЕГО БИЗНЕСА" title="От файла к ясной картине" description="Загрузите файл, проверьте записи и подтвердите импорт." />
     <div className="import-grid"><section className="panel upload-panel"><div className="panel-heading"><div><h2>Новый импорт</h2><p>Данные для {business!.name}</p></div><span className="step-badge">Шаг {preview ? '2' : '1'} из 2</span></div>
-      <div className="upload-body"><label className="field-label">Какие данные загружаем?</label><div className="import-types">{(['sales', 'expenses', 'products'] as ImportKind[]).map(k => <button key={k} className={kind === k ? 'selected' : ''} aria-pressed={kind === k} disabled={!!busy} onClick={() => { reset(); setKind(k) }}>{k === 'sales' ? <TrendingUp size={17} /> : k === 'expenses' ? <Wallet size={17} /> : <Package size={17} />}{kindLabel[k]}</button>)}</div>
+      <div className="upload-body"><label className="field-label">Какие данные загружаем?</label><div className="import-types">{(['sales', 'expenses', 'products'] as ImportKind[]).map(k => <button key={k} className={kind === k ? 'selected' : ''} aria-pressed={kind === k} disabled={!!busy} onClick={() => changeKind(k)}>{k === 'sales' ? <TrendingUp size={17} /> : k === 'expenses' ? <Wallet size={17} /> : <Package size={17} />}{kindLabel[k]}</button>)}</div>
         <input ref={fileInput} className="visually-hidden" type="file" accept=".csv,.xlsx" id="import-file" onChange={e => choose(e.target.files?.[0])} disabled={!!busy} />
-        <label htmlFor="import-file" className={`drop-zone ${dragging ? 'dragging' : ''} ${busy ? 'disabled' : ''}`} onDragOver={e => { e.preventDefault(); if (!busy) setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); if (!busy) choose(e.dataTransfer.files[0]) }}><span className="upload-icon"><Upload size={25} /></span><strong>{file ? file.name : 'Перетащите файл сюда'}</strong><span>{file ? `${decimal((file.size / 1024).toFixed(1))} КБ · Нажмите, чтобы заменить` : <>или <em>выберите на компьютере</em></>}</span><small>CSV или XLSX · до 10 МБ · до 20 000 строк</small></label>
+        <label htmlFor="import-file" className={`drop-zone ${dragging ? 'dragging' : ''} ${busy ? 'disabled' : ''}`} onDragOver={e => { e.preventDefault(); if (!busy) setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); if (!busy) choose(e.dataTransfer.files[0]) }}><span className="upload-icon"><Upload size={25} /></span><strong>{file ? file.name : 'Перетащите файл сюда'}</strong><span>{file ? `${decimal((file.size / 1024).toFixed(1))} КБ · Нажмите, чтобы заменить` : <>или <em>выберите на компьютере</em></>}</span><small>Тип данных: {kindLabel[kind]} · CSV или XLSX · до 10 МБ</small></label>
         <div className="upload-actions"><a href={`/templates/${kind}.csv`} download className="text-link"><ArrowDownToLine size={16} />Скачать шаблон</a><Button className="primary" disabled={!file || !!busy} onClick={() => void send('preview')}>{busy === 'preview' ? <LoaderCircle className="spin" size={17} /> : <ArrowRight size={17} />}{busy === 'preview' ? 'Проверяем…' : 'Проверить файл'}</Button></div>
       </div></section><aside className="panel import-guide"><span className="guide-icon"><FileSpreadsheet size={23} /></span><h2>Пара минут —<br />и данные в порядке</h2><ol><li><span>1</span><div><strong>Подготовьте файл</strong><p>Используйте шаблон с нужными колонками. Даты — в формате ГГГГ-ММ-ДД.</p></div></li><li><span>2</span><div><strong>Проверьте предпросмотр</strong><p>Мы покажем строки и ошибки до сохранения в базу.</p></div></li><li><span>3</span><div><strong>Подтвердите импорт</strong><p>Повторная загрузка того же файла не создаст дубликатов.</p></div></li></ol><div className="guide-footnote"><CircleHelp size={16} /><span>В CSV используйте UTF-8 и запятые. XLSX должен содержать один лист без формул.</span></div></aside></div>
     {error && <ErrorBox message={error} />}{success && <div className="success-box" role="status"><CheckCircle2 size={21} /><span>{success}</span><Link to="/" className="text-link">Перейти к обзору <ArrowRight size={16} /></Link></div>}
-    {preview && <section className="panel preview-panel"><div className="panel-heading"><div><h2>Проверьте данные</h2><p>{preview.filename} · {preview.valid_row_count} корректных из {preview.row_count} строк</p></div><Button className="icon-button" aria-label="Закрыть предпросмотр" disabled={!!busy} onClick={() => setPreview(null)}><X size={18} /></Button></div>{!!preview.errors.length && <div className="preview-errors" role="alert"><h3>Исправьте ошибки в файле</h3><ul>{preview.errors.map((e, i) => <li key={i}>Строка {e.row} · {columnLabel[e.field] || e.field}: {e.message}</li>)}</ul>{preview.errors_truncated && <p>Показаны первые 100 ошибок. В файле есть другие ошибки.</p>}</div>}{preview.existing_import_id && <div className="notice"><CheckCircle2 size={18} /><span>Эти данные уже загружены. Повторный импорт не требуется.</span></div>}{!!preview.preview.length && <div className="scroll-table"><table><thead><tr><th>Строка</th>{columns.map(c => <th key={c}>{columnLabel[c] || c}</th>)}</tr></thead><tbody>{preview.preview.map(row => <tr key={row.source_row}><td className="muted">{row.source_row}</td>{columns.map(c => <td key={c}>{String((row.data as unknown as Record<string, unknown>)[c] ?? '—')}</td>)}</tr>)}</tbody></table></div>}<div className="preview-footer"><span>{expired ? 'Предпросмотр истёк. Проверьте файл ещё раз.' : 'Показаны первые 20 корректных строк. Сохраняются все записи.'}</span><Button className="primary" disabled={!preview.can_confirm || !preview.preview_token || expired || !!busy} onClick={() => void send('confirm')}>{busy === 'confirm' ? <LoaderCircle className="spin" size={17} /> : <Check size={17} />}{busy === 'confirm' ? 'Сохраняем…' : 'Подтвердить импорт'}</Button></div></section>}
+    {preview && <section className="panel preview-panel"><div className="panel-heading"><div><h2>Проверьте данные</h2><p>{preview.filename} · {kindLabel[preview.kind]} · {preview.valid_row_count} корректных из {preview.row_count} строк</p></div><Button className="icon-button" aria-label="Закрыть предпросмотр" disabled={!!busy} onClick={() => setPreview(null)}><X size={18} /></Button></div>{suggestedKind && <div className="notice import-kind-hint" role="status"><CircleHelp size={20} /><div><strong>По колонкам файл похож на «{kindLabel[suggestedKind]}».</strong><p>Сейчас выбран тип «{kindLabel[preview.kind]}». Переключите тип и проверьте файл повторно.</p></div><Button disabled={!!busy} onClick={() => changeKind(suggestedKind)}>Переключить на «{kindLabel[suggestedKind]}»</Button></div>}{!!preview.errors.length && <div className="preview-errors" role="alert"><h3>{suggestedKind ? "Проверьте тип данных" : "Исправьте ошибки в файле"}</h3><ul>{preview.errors.map((e, i) => <li key={i}>Строка {e.row} · {columnLabel[e.field] || e.field}: {e.message}</li>)}</ul>{preview.errors_truncated && <p>Показаны первые 100 ошибок. В файле есть другие ошибки.</p>}</div>}{preview.existing_import_id && <div className="notice"><CheckCircle2 size={18} /><span>Эти данные уже загружены. Повторный импорт не требуется.</span></div>}{!!preview.preview.length && <div className="scroll-table"><table><thead><tr><th>Строка</th>{columns.map(c => <th key={c}>{columnLabel[c] || c}</th>)}</tr></thead><tbody>{preview.preview.map(row => <tr key={row.source_row}><td className="muted">{row.source_row}</td>{columns.map(c => <td key={c}>{String((row.data as unknown as Record<string, unknown>)[c] ?? '—')}</td>)}</tr>)}</tbody></table></div>}<div className="preview-footer"><span>{expired ? 'Предпросмотр истёк. Проверьте файл ещё раз.' : 'Показаны первые 20 корректных строк. Сохраняются все записи.'}</span><Button className="primary" disabled={!preview.can_confirm || !preview.preview_token || expired || !!busy} onClick={() => void send('confirm')}>{busy === 'confirm' ? <LoaderCircle className="spin" size={17} /> : <Check size={17} />}{busy === 'confirm' ? 'Сохраняем…' : 'Подтвердить импорт'}</Button></div></section>}
     <section className="panel history-panel"><div className="panel-heading"><div><h2>История загрузок</h2><p>Подтверждённые файлы и статус обработки</p></div><span className="subtle-icon"><ArrowDownToLine size={19} /></span></div>{history.loading ? <Loading /> : history.error ? <ErrorBox message={history.error} retry={refresh} /> : !history.data?.length ? <Empty title="Первый файл ещё впереди" text="Загруженные файлы появятся здесь после подтверждения." /> : <><div className="scroll-table"><table><thead><tr><th>Файл</th><th>Тип данных</th><th>Дата загрузки</th><th className="numeric">Строки</th><th>Статус</th></tr></thead><tbody>{history.data.map(row => <tr key={row.id}><td><span className="file-name"><FileSpreadsheet size={18} />{row.filename}</span></td><td>{kindLabel[row.kind]}</td><td className="muted">{new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' }).format(new Date(row.created_at))}</td><td className="numeric">{decimal(String(row.row_count))}</td><td><span className={`status-badge ${row.status}`}><span />{row.status === 'confirmed' ? 'Загружен' : row.status === 'failed' ? 'Ошибка' : 'Обработка'}</span></td></tr>)}</tbody></table></div>{history.data.length >= historyLimit && historyLimit < 100 && <div className="load-more"><Button onClick={() => setHistoryLimit(v => Math.min(100, v + 20))}>Показать ещё</Button></div>}</>}</section>
   </>
 }
@@ -396,7 +422,7 @@ function InsightPage() {
   const snapshot = useRemote<Insights>(result.data ? `/insights?${query(business!.id, result.data.period)}&limit=1` : null)
   const item = result.data
   return <><Link className="text-link back-link" to="/insights"><ChevronLeft size={16} />К списку сигналов</Link>{result.loading ? <Loading /> : result.error ? <ErrorBox message={result.error} retry={refresh} /> : item && <>
-    <PageHeading eyebrow={insightLabels[item.type].toUpperCase()} title={insightTitle(item)} description="Факты, исходные записи и действия для проверки." />
+    <PageHeading eyebrow={insightLabels[item.type].toUpperCase()} title={insightTitle(item)} description="Факты, исходные записи и действия для проверки." reportPeriod={item.period} />
     {snapshot.data?.analysis && <AnalysisNotice analysis={snapshot.data.analysis} />}
     <div className="insight-detail-grid"><section className="panel evidence-panel"><div className="panel-heading"><div><h2>Что показали данные</h2><p>{periodLabel(item.evidence.current_period)}</p></div><span className={`risk-badge ${item.severity}`}>{severityLabels[item.severity]} приоритет</span></div><div className="evidence-body"><p>{item.evidence.explanation}</p><div className="insight-values"><div><span>Текущее значение</span><strong><EvidenceValue value={item.evidence.current_value} unit={item.evidence.value_unit} /></strong></div>{item.evidence.baseline_value != null && <div><span>Базовое значение</span><strong><EvidenceValue value={item.evidence.baseline_value} unit={item.evidence.value_unit} /></strong></div>}</div><dl className="evidence-facts">
       {item.evidence.baseline_period && <div><dt>Базовый период</dt><dd>{periodLabel(item.evidence.baseline_period)}</dd></div>}
@@ -410,5 +436,86 @@ function InsightPage() {
     </dl><div className="formula"><strong>Правило расчёта</strong><p>{item.evidence.formula}</p></div><p className="evidence-caveat">{item.evidence.caveat}</p></div></section>
     <aside className="panel recommendation-panel"><span className="guide-icon"><Sparkles size={23} /></span><h2>Что проверить</h2><p>{item.recommendation}</p><span className="recommendation-source">Шаблонная рекомендация · работает без LLM</span><div className="savings-box"><small>Сценарная оценка за текущий период</small><strong>{item.potential_savings_kzt != null ? money(item.potential_savings_kzt) : 'Не оценена'}</strong><p>{item.evidence.savings_assumption || 'Данных для обоснованной оценки экономии недостаточно.'}</p><span>Оценка требует проверки и не гарантирует экономию.</span></div></aside></div>
     <section className="panel sources-panel"><div className="panel-heading"><div><h2>Исходные записи</h2><p>Показано {item.evidence.source_rows.length} из {item.evidence.source_rows_total} строк, участвующих в расчёте. Для сравнения показаны примеры из обоих периодов.</p></div><FileSpreadsheet size={20} className="muted" /></div><div className="scroll-table"><table><thead><tr><th>Файл</th><th>Строка</th><th>Дата</th><th>Операция</th><th className="numeric">Сумма</th></tr></thead><tbody>{item.evidence.source_rows.map(row => <tr key={row.record_id}><td>{row.filename}</td><td>{row.source_row}</td><td>{dateLabel(row.date, true)}</td><td>{({ sale: 'Продажа', return: 'Возврат продажи', expense: 'Расход', refund: 'Возврат расхода' } as Record<string, string>)[row.record_type] || row.record_type}</td><td className="numeric">{money(row.amount)}</td></tr>)}</tbody></table></div><div className="panel-footnote">Строки возвратов показаны положительной суммой; в расчётах они вычитаются.</div></section>
+    <InsightAdvisor item={item} />
   </>}</>
+}
+
+const fallbackLabels: Record<string, string> = {
+  disabled: 'LLM отключён в настройках сервера.', missing_key: 'На сервере не задан API-ключ.',
+  consent_required: 'Отправка выбранному провайдеру не разрешена.', timeout: 'Внешний API не ответил вовремя.',
+  connection_error: 'Не удалось связаться с внешним API.', authentication_error: 'Провайдер отклонил API-ключ или доступ.',
+  rate_limit: 'Достигнут лимит внешнего API.', quota_exhausted: 'Закончились кредиты или достигнут лимит расходов проекта.', model_error: 'Проверьте модель и параметры API на сервере.',
+  provider_error: 'Внешний API временно недоступен.', invalid_response: 'Ответ LLM не прошёл проверку фактов.',
+}
+function ExternalConsent({ allowed, setAllowed, provider }: { allowed: boolean; setAllowed: (value: boolean) => void; provider: AdvisorStatus['provider'] }) {
+  return <label className="external-consent"><input type="checkbox" checked={allowed} onChange={e => setAllowed(e.target.checked)} /><span>Разрешить отправку вопроса, истории этой беседы и агрегированных показателей в {provider === 'gemini' ? 'Google Gemini' : 'OpenAI'}. Исходные файлы и строки платежей не отправляются.{provider === 'gemini' && <small>На бесплатном тарифе Google может использовать переданные данные для улучшения продуктов.</small>}</span></label>
+}
+function AdvisorAnswer({ reply }: { reply: AdvisorReply }) {
+  return <div className="advisor-answer"><div className="reply-meta"><span className={`mode-badge ${reply.source}`}>{reply.source === 'llm' ? `${reply.provider === 'gemini' ? 'Gemini' : 'OpenAI'} · ${reply.model}` : 'Шаблонный ответ'}</span>{reply.cached && <span>Сохранённый ответ · API-токены не потрачены</span>}{reply.retry_after_seconds != null && <span>Пауза API: повторите через {reply.retry_after_seconds} сек.</span>}{reply.fallback_reason && <span>{fallbackLabels[reply.fallback_reason]} Чат работает без LLM.</span>}</div>
+    {reply.analysis_status !== 'current' && <p className="advisor-warning">{reply.analysis_status === 'stale' ? 'Анализ устарел после импорта.' : 'Анализ за этот период ещё не запускался.'} <Link to="/insights">Открыть детектор</Link></p>}
+    <p className="answer-text">{reply.answer}</p><details className="advisor-facts"><summary>Факты backend · {reply.facts.length}</summary><dl>{reply.facts.map(fact => <div key={fact.id}><dt>{fact.insight_id ? <Link to={`/insights/${fact.insight_id}`}>{fact.label}</Link> : fact.label}</dt><dd>{fact.value}</dd></div>)}</dl></details><small>{reply.disclaimer}</small>
+  </div>
+}
+type ChatTurn = { question: string; reply: AdvisorReply }
+function AdvisorPage() {
+  const { business, period, setEffectivePeriod, refresh } = useWorkspace()
+  const connection = useRemote<AdvisorStatus>('/advisor/status')
+  const overview = useRemote<Summary>(`/dashboard/summary?${query(business!.id, period)}`)
+  const [turns, setTurns] = useState<ChatTurn[]>([])
+  const [question, setQuestion] = useState('')
+  const [allowed, setAllowed] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const scope = query(business!.id, period)
+  const activeRequest = useRef<AbortController | null>(null)
+  const chatEnd = useRef<HTMLDivElement>(null)
+  useEffect(() => { setAllowed(false) }, [connection.data?.provider, connection.data?.model])
+  useEffect(() => {
+    setTurns([]); setQuestion(''); setError(''); setBusy(false); setAllowed(false)
+    return () => activeRequest.current?.abort()
+  }, [scope])
+  useEffect(() => { if (!period && overview.data) setEffectivePeriod(overview.data.period) }, [period, overview.data, setEffectivePeriod])
+  useEffect(() => { if (turns.length) chatEnd.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, [turns.length])
+  async function send(e: FormEvent) {
+    e.preventDefault()
+    const text = question.trim()
+    if (!text || busy) return
+    setBusy(true); setError('')
+    const controller = new AbortController()
+    activeRequest.current = controller
+    try {
+      const history = turns.flatMap(turn => [{ role: 'user', content: turn.question }, { role: 'assistant', content: turn.reply.answer }]).slice(-4)
+      const reply = await api<AdvisorReply>('/advisor/chat', { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ business_id: business!.id, ...period, message: text, history, allow_external: allowed, external_provider: connection.data?.provider }) })
+      if (!controller.signal.aborted) { setTurns(old => [...old, { question: text, reply }]); setQuestion('') }
+    } catch (e) { if (!controller.signal.aborted) setError((e as Error).message) }
+    finally { if (!controller.signal.aborted) setBusy(false) }
+  }
+  return <><PageHeading eyebrow="ОТ ФАКТОВ К ДЕЙСТВИЯМ" title="AI-советник" description="Обсудите показатели и сигналы выбранного бизнеса и периода." dates />
+    {connection.loading ? <Loading label="Проверяем настройки советника…" /> : connection.error ? <ErrorBox message={connection.error} retry={refresh} /> : connection.data && <div className="notice advisor-connection"><Sparkles size={20} /><div><strong>{connection.data.ready ? `LLM настроен · ${connection.data.model}` : 'Советник работает в шаблонном режиме'}</strong><p>{connection.data.ready ? 'Внешний API используется после вашего разрешения. При ошибке будет доступен шаблонный ответ.' : fallbackLabels[connection.data.fallback_reason || 'disabled']}</p></div></div>}
+    <section className="panel chat-panel"><div className="panel-heading"><div><h2>Беседа о финансах</h2><p>{periodLabel(period || overview.data?.period || null)} · {business!.name}</p></div><Button disabled={!turns.length || busy} onClick={() => setTurns([])}>Новая беседа</Button></div>
+      {overview.error && <ErrorBox message={overview.error} retry={refresh} />}
+      <div className="chat-messages" role="log" aria-label="История беседы" aria-live="polite">{!turns.length ? <div className="chat-intro"><span className="guide-icon"><Sparkles size={23} /></span><h3>С чего начать проверку?</h3><p>Советник объясняет рассчитанные показатели и предлагает проверки. Для подробного разбора сначала запустите детектор.</p><div className="suggested-questions">{['Какие проблемы проверить в первую очередь?', 'Почему падает маржа?', 'Как проверить расходы на упаковку?'].map(text => <Button key={text} onClick={() => setQuestion(text)}>{text}</Button>)}</div></div> : turns.map((turn, i) => <article key={i} className="chat-turn"><div className="user-message"><small>Вы</small><p>{turn.question}</p></div><div className="assistant-message"><strong>Советник ProfitLeak</strong><AdvisorAnswer reply={turn.reply} /></div></article>)}<div ref={chatEnd} /></div>
+      <form className="chat-form" onSubmit={e => void send(e)}><ExternalConsent allowed={allowed} setAllowed={setAllowed} provider={connection.data?.provider || 'openai'} /><label htmlFor="advisor-question">Ваш вопрос</label><textarea id="advisor-question" value={question} onChange={e => setQuestion(e.target.value)} placeholder="Например: какие расходы нужно проверить?" maxLength={2000} rows={3} required disabled={busy} /><div className="chat-form-footer"><small>История хранится только в этой вкладке и очищается при смене бизнеса или периода.</small><Button className="primary" disabled={busy || !question.trim() || overview.loading || !!overview.error}>{busy ? <LoaderCircle size={17} className="spin" /> : <ArrowRight size={17} />}{busy ? 'Советник отвечает…' : 'Отправить вопрос'}</Button></div>{error && <ErrorBox message={error} />}</form>
+    </section>
+  </>
+}
+function InsightAdvisor({ item }: { item: Insight }) {
+  const connection = useRemote<AdvisorStatus>('/advisor/status')
+  const [allowed, setAllowed] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [reply, setReply] = useState<AdvisorReply | null>(null)
+  const [error, setError] = useState('')
+  const requestRef = useRef<AbortController | null>(null)
+  useEffect(() => { setAllowed(false) }, [connection.data?.provider, connection.data?.model])
+  useEffect(() => { setReply(null); setError(''); setBusy(false); setAllowed(false); return () => requestRef.current?.abort() }, [item.id, item.created_at])
+  async function explain() {
+    setBusy(true); setError('')
+    const controller = new AbortController(); requestRef.current = controller
+    try {
+      const result = await api<AdvisorReply>('/advisor/chat', { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ business_id: item.business_id, ...item.period, insight_id: item.id, message: 'Объясни этот сигнал и предложи конкретные действия для проверки.', allow_external: allowed, external_provider: connection.data?.provider }) })
+      if (!controller.signal.aborted) setReply(result)
+    } catch (e) { if (!controller.signal.aborted) setError((e as Error).message) }
+    finally { if (!controller.signal.aborted) setBusy(false) }
+  }
+  return <section className="panel insight-advisor"><div className="panel-heading"><div><h2>Разобрать с советником</h2><p>Пояснение по этому сигналу с подтверждёнными фактами.</p></div><Link className="text-link" to="/advisor">Открыть чат <ArrowRight size={15} /></Link></div><div className="insight-advisor-body"><ExternalConsent allowed={allowed} setAllowed={setAllowed} provider={connection.data?.provider || 'openai'} /><Button className="primary" onClick={() => void explain()} disabled={busy}>{busy ? <LoaderCircle size={17} className="spin" /> : <Sparkles size={17} />}{busy ? 'Готовим пояснение…' : 'Получить пояснение'}</Button>{error && <ErrorBox message={error} />}{reply && <AdvisorAnswer reply={reply} />}</div></section>
 }

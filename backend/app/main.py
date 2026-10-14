@@ -8,9 +8,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
+from app.api.advisor import router as advisor_router
 from app.api.analytics import router as analytics_router
 from app.api.imports import router as imports_router
 from app.api.insights import router as insights_router
+from app.api.reports import router as reports_router
 from app.core.config import get_settings
 from app.core.upload_limit import UploadLimitMiddleware
 from app.db.session import get_db
@@ -27,6 +29,8 @@ app.add_middleware(
 app.include_router(imports_router)
 app.include_router(analytics_router)
 app.include_router(insights_router)
+app.include_router(advisor_router)
+app.include_router(reports_router)
 
 
 @app.exception_handler(FileProblem)

@@ -17,6 +17,8 @@ export type Insights = components['schemas']['InsightsRead']
 export type Insight = components['schemas']['InsightRead']
 export type InsightType = Insight['type']
 export type Severity = Insight['severity']
+export type AdvisorStatus = components['schemas']['AdvisorStatus']
+export type AdvisorReply = components['schemas']['AdvisorResponse']
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
@@ -39,6 +41,21 @@ export function query(businessId: string, period: Period | null) {
   const params = new URLSearchParams({ business_id: businessId })
   if (period) { params.set('date_from', period.date_from); params.set('date_to', period.date_to) }
   return params.toString()
+}
+
+export async function downloadPdf(businessId: string, period: Period | null) {
+  const response = await fetch(`/api/v1/reports/pdf?${query(businessId, period)}`)
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.detail?.message || 'Не удалось сформировать PDF. Проверьте период и подключение к серверу.')
+  }
+  const blob = await response.blob()
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = response.headers.get('Content-Disposition')?.match(/filename="([a-zA-Z0-9_.-]+)"/)?.[1] || 'profitleak.pdf'
+  anchor.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 // Keep API decimal strings exact for display. Number conversion is only used by charts.

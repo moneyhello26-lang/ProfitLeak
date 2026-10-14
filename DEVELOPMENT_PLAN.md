@@ -8,7 +8,7 @@ At the initial review, the repository contained only `README.md` and `ProfitLeak
 
 **P0:** CSV/XLSX preview and confirmed import; schema and value validation; duplicate import protection; date filtering; revenue, cost of goods, gross profit, gross margin, and operating profit; revenue and expense charts; product profitability; explainable expense spike, margin drop, low profit product, sales drop, and possible duplicate signals; evidence and recommendations; deterministic demo load; usable loading, empty, and error states. Recommendations must work without an LLM.
 
-**Later:** advisor chat, PDF export, Kazakh localization, period comparison, and forecasting. Accounts and roles are required before real customer data is accepted or a public multi tenant deployment is offered. Until then, deployment is demo only with synthetic data.
+**Implemented continuation:** advisor chat and PDF export. **Later:** Kazakh localization, period comparison, and forecasting. Accounts and roles are required before real customer data is accepted or a public multi tenant deployment is offered. Until then, deployment is demo only with synthetic data.
 
 ## Implementation progress
 
@@ -42,10 +42,37 @@ stage: five Decimal rules, persisted analysis status and insights, source eviden
 severity/type filters and details, and recent signals on the dashboard. Sync OpenAPI
 and TypeScript types, then validate the three independent demo scenarios, sparse
 data, missing costs, returns/refunds, repeat analysis, tenant scoping and stale data.
-Use SQLite by default and keep the existing visual style. LLM provider integration and
-P1/P2 features remain separate stages, as requested by section 16 of the DOCX.
+Use SQLite by default and keep the existing visual style. The following stage implements
+the LLM provider, advisor chat and PDF; remaining P1/P2 features stay separate,
+as requested by section 16 of the DOCX.
 
 ## Architecture and repository
+
+### Advisor and PDF continuation, 2026-10-14
+
+FR-08 provider integration, FR-11 and FR-12 are implemented. OpenAI Responses API
+uses strict structured output, verified backend fact placeholders, a bounded
+stateless history, explicit external-send consent and template fallback on API or
+validation failures. No raw source rows are sent; no model-derived amounts are
+accepted. Read transactions end before external API waits so chat does not hold
+a SQLite write lock. Insight details can request a focused explanation.
+Local ReportLab PDF export includes exact KPIs, products, expenses, evidence,
+recommendations and explicit missing/stale analysis state; the Cyrillic font is
+bundled with its license. OpenAPI/types and the setup guide are synchronized.
+Real provider verification requires the user's API key. Remaining stages are
+Kazakh localization, general period comparison, forecasts and accounts/roles.
+
+### Quota economy, 2026-10-15
+
+Gemini 3.5 Flash-Lite is selected for free-tier operation; OpenAI nano remains
+a manually configured alternative. Keys are separated by provider and outbound
+consent is tied to the selected provider. Response budget is 600 tokens, history
+defaults to four messages capped at 1200 characters each, and context includes
+up to three insights. Validated responses are cached in memory for ten minutes,
+with scope/facts/history/provider/model/key in the cache identity. Rate and billing
+429 failures pause further provider calls while retaining local fallback and
+valid cache hits. There are no automatic retries or paid-provider failovers.
+The Google key is not configured yet. Existing OpenAI credentials are preserved.
 
 ```text
 frontend/                 React + TypeScript + Vite, custom CSS, React Router, Recharts
