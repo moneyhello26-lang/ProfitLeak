@@ -3,7 +3,7 @@ services:
     name: profitleak
     runtime: python
     plan: free
-    region: frankfurt
+    region: ohio
     buildCommand: python -m pip install './backend[postgres]' && npm --prefix frontend ci && npm --prefix frontend run build
     startCommand: python backend/scripts/start_hosted.py
     healthCheckPath: /api/v1/health

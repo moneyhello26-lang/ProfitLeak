@@ -2,7 +2,8 @@
 
 Пользователь выбрал бюджет 0 ₸. Это основной вариант для демонстрационного
 выпуска 17 октября; платный VPS из DEPLOYMENT.md остаётся альтернативой на будущее.
-Исходники готовы к этой схеме. Ресурсы в аккаунтах ещё не созданы.
+Исходники готовы к этой схеме. Владелец создал Neon ProfitLeak (PostgreSQL 18,
+Ohio); Render ещё настраивается.
 
 ## Как устроено
 
@@ -41,7 +42,7 @@ npm.cmd --prefix frontend run build
 
 1. Войти в [Neon Console](https://console.neon.tech/).
 2. Создать проект `profitleak` на плане Free, выбрать регион рядом с Render
-   (для подготовленного конфига — Frankfurt), PostgreSQL 18, если доступна.
+   (для подготовленного конфига — Ohio), PostgreSQL 18, если доступна.
 3. Открыть Connect и скопировать **direct connection** (Connection pooling выключен).
    Для одного процесса этого достаточно; тот же адрес подходит для миграций.
 4. Строка вида `postgresql://.../neondb?sslmode=require&channel_binding=require`
@@ -63,7 +64,7 @@ npm.cmd --prefix frontend run build
 | Настройка | Значение |
 | --- | --- |
 | Runtime | Python |
-| Region | Frankfurt |
+| Region | Ohio |
 | Plan | Free |
 | Root directory | пусто, корень репозитория |
 | Build command | `python -m pip install './backend[postgres]' && npm --prefix frontend ci && npm --prefix frontend run build` |
