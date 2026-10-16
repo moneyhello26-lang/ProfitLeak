@@ -364,6 +364,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/insights/{insight_id}/workflow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Workflow */
+        patch: operations["update_workflow_api_v1_insights__insight_id__workflow_patch"];
+        trace?: never;
+    };
     "/api/v1/advisor/status": {
         parameters: {
             query?: never;
@@ -1108,6 +1125,29 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Workflow Status
+             * @default new
+             * @enum {string}
+             */
+            workflow_status: "new" | "in_progress" | "reviewed" | "dismissed";
+            /**
+             * Workflow Note
+             * @default
+             */
+            workflow_note: string;
+            /** Workflow Updated At */
+            workflow_updated_at?: string | null;
+        };
+        /** InsightWorkflowUpdate */
+        InsightWorkflowUpdate: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "in_progress" | "reviewed" | "dismissed";
+            /** Note */
+            note: string;
         };
         /** InsightsRead */
         InsightsRead: {
@@ -2327,7 +2367,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Request Entity Too Large */
+            /** @description Content Too Large */
             413: {
                 headers: {
                     [name: string]: unknown;
@@ -2345,7 +2385,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2405,7 +2445,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Request Entity Too Large */
+            /** @description Content Too Large */
             413: {
                 headers: {
                     [name: string]: unknown;
@@ -2423,7 +2463,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2873,6 +2913,7 @@ export interface operations {
                 type?: ("EXPENSE_SPIKE" | "MARGIN_DROP" | "LOW_PROFIT_PRODUCT" | "SALES_DROP" | "POSSIBLE_DUPLICATE") | null;
                 limit?: number;
                 offset?: number;
+                workflow_status?: ("new" | "in_progress" | "reviewed" | "dismissed") | null;
                 date_from?: string | null;
                 date_to?: string | null;
             };
@@ -2932,6 +2973,61 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsightRead"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_workflow_api_v1_insights__insight_id__workflow_patch: {
+        parameters: {
+            query: {
+                business_id: string;
+            };
+            header?: never;
+            path: {
+                insight_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InsightWorkflowUpdate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

@@ -1,5 +1,10 @@
 # ProfitLeak AI development plan
 
+> Current release plan (2026-10-16): see
+> [release and handoff for October 17](docs/RELEASE_PLAN_2026-10-17.md).
+> The historical stages below predate the implemented accounts, Kazakh
+> localization, period comparison and forecasts; they are not outstanding features.
+
 ## Starting point and objective
 
 At the initial review, the repository contained only `README.md` and `ProfitLeak_AI_Requirements.docx`, with no application code, API contract, test suite, or deployment setup. Build a working Russian language MVP for a synthetic Taraz cafe: load 90 days of sales and expenses, display server calculated KPIs, and explain at least three detectable issues. React and FastAPI are implemented. The initial database choice was PostgreSQL; on 2026-10-13 the user requested operation without Docker, so SQLite became the default, matching the source requirements. PostgreSQL remains optional.

@@ -20,3 +20,5 @@ htmlcov/
 *.db-journal
 *.db-wal
 *.db-shm
+*.dump
+/output/ProfitLeak_handoff_*.zip

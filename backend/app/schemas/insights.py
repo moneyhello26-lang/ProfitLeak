@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.analytics import Period
 
@@ -11,6 +11,13 @@ InsightType = Literal[
     "EXPENSE_SPIKE", "MARGIN_DROP", "LOW_PROFIT_PRODUCT", "SALES_DROP", "POSSIBLE_DUPLICATE"
 ]
 Severity = Literal["low", "medium", "high"]
+WorkflowStatus = Literal["new", "in_progress", "reviewed", "dismissed"]
+
+
+class InsightWorkflowUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    status: WorkflowStatus
+    note: str = Field(max_length=2000)
 
 
 class AnalysisRequest(BaseModel):
@@ -79,6 +86,9 @@ class InsightRead(BaseModel):
     recommendation: str
     recommendation_source: Literal["template"] = "template"
     created_at: datetime
+    workflow_status: WorkflowStatus = "new"
+    workflow_note: str = ""
+    workflow_updated_at: datetime | None = None
 
 
 class AnalysisRead(BaseModel):

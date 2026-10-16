@@ -116,6 +116,14 @@ def run_analysis(db: Session, business_id: UUID, period: Period) -> AnalysisRead
         "checks": [check.model_dump(mode="json") for check in result.checks],
         "source_imports": imports,
     }
+    previous_workflow = {
+        item.id: (item.workflow_status, item.workflow_note, item.workflow_updated_at)
+        for item in db.scalars(select(Insight).where(
+            Insight.business_id == business_id,
+            Insight.period_start == period.date_from,
+            Insight.period_end == period.date_to,
+        ))
+    }
     db.execute(
         delete(Insight).where(
             Insight.business_id == business_id,
@@ -126,13 +134,15 @@ def run_analysis(db: Session, business_id: UUID, period: Period) -> AnalysisRead
     for signal in result.signals:
         identity = f"profitleak/{business_id}/{period.date_from}/{period.date_to}/"
         identity += signal.type + "/" + signal.key
+        insight_id = uuid5(NAMESPACE_URL, identity)
+        status, note, updated_at = previous_workflow.get(insight_id, ("new", "", None))
         # NUMERIC(18,2) limits a stored scenario. No estimate is better than overflow/rounding.
         savings = signal.savings
         if savings is not None and savings >= 10**16:
             savings = None
         db.add(
             Insight(
-                id=uuid5(NAMESPACE_URL, identity),
+                id=insight_id,
                 business_id=business_id,
                 type=signal.type,
                 severity=signal.severity,
@@ -144,6 +154,9 @@ def run_analysis(db: Session, business_id: UUID, period: Period) -> AnalysisRead
                 estimate_type="scenario" if savings is not None else None,
                 recommendation=signal.recommendation,
                 created_at=now,
+                workflow_status=status,
+                workflow_note=note,
+                workflow_updated_at=updated_at,
             )
         )
     db.flush()
@@ -163,6 +176,9 @@ def read_insight(insight: Insight) -> InsightRead:
         estimate_type=insight.estimate_type,
         recommendation=insight.recommendation,
         created_at=insight.created_at,
+        workflow_status=insight.workflow_status,
+        workflow_note=insight.workflow_note,
+        workflow_updated_at=insight.workflow_updated_at,
     )
     if insight.type == "SALES_DROP":
         result.evidence.entity = translate("Все товары")
@@ -177,6 +193,7 @@ def list_insights(
     insight_type: str | None,
     limit: int,
     offset: int,
+    workflow_status: str | None = None,
 ) -> InsightsRead:
     run = db.scalar(
         select(AnalysisRun).where(
@@ -194,6 +211,8 @@ def list_insights(
         filters.append(Insight.severity == severity)
     if insight_type:
         filters.append(Insight.type == insight_type)
+    if workflow_status:
+        filters.append(Insight.workflow_status == workflow_status)
     total = db.scalar(select(func.count()).select_from(Insight).where(*filters))
     priority = case((Insight.severity == "high", 0), (Insight.severity == "medium", 1), else_=2)
     items = db.scalars(
@@ -223,4 +242,17 @@ def insight_detail(db: Session, business_id: UUID, insight_id: UUID) -> InsightR
     )
     if item is None:
         raise FileProblem("insight_not_found", "Сигнал не найден для выбранного бизнеса.", 404)
+    return read_insight(item)
+
+
+def update_workflow(db: Session, business_id: UUID, insight_id: UUID, status: str, note: str):
+    item = db.scalar(select(Insight).where(
+        Insight.id == insight_id, Insight.business_id == business_id
+    ).with_for_update())
+    if item is None:
+        raise FileProblem("insight_not_found", "Сигнал не найден для выбранного бизнеса.", 404)
+    item.workflow_status = status
+    item.workflow_note = note.strip()
+    item.workflow_updated_at = datetime.now(timezone.utc)
+    db.flush()
     return read_insight(item)

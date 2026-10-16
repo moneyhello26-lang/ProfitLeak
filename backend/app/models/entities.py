@@ -183,6 +183,10 @@ class Insight(RecordMixin, Base):
         ),
         CheckConstraint("severity IN ('low', 'medium', 'high')", name="severity"),
         CheckConstraint("confidence IN ('low', 'medium', 'high')", name="confidence"),
+        CheckConstraint(
+            "workflow_status IN ('new', 'in_progress', 'reviewed', 'dismissed')",
+            name="workflow_status",
+        ),
         CheckConstraint("period_start <= period_end", name="period"),
         CheckConstraint(
             "(estimated_savings IS NULL AND estimate_type IS NULL) OR "
@@ -203,3 +207,6 @@ class Insight(RecordMixin, Base):
     estimated_savings: Mapped[Decimal | None] = mapped_column(ExactDecimal(18, 2))
     estimate_type: Mapped[str | None] = mapped_column(String(20))
     recommendation: Mapped[str] = mapped_column(Text)
+    workflow_status: Mapped[str] = mapped_column(String(20), default="new", server_default="new")
+    workflow_note: Mapped[str] = mapped_column(Text, default="", server_default="")
+    workflow_updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime())

@@ -969,7 +969,7 @@
             }
           },
           "413": {
-            "description": "Request Entity Too Large",
+            "description": "Content Too Large",
             "content": {
               "application/json": {
                 "schema": {
@@ -989,7 +989,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Entity",
+            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
@@ -1068,7 +1068,7 @@
             }
           },
           "413": {
-            "description": "Request Entity Too Large",
+            "description": "Content Too Large",
             "content": {
               "application/json": {
                 "schema": {
@@ -1088,7 +1088,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Entity",
+            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
@@ -2101,6 +2101,28 @@
             }
           },
           {
+            "name": "workflow_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "new",
+                    "in_progress",
+                    "reviewed",
+                    "dismissed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workflow Status"
+            }
+          },
+          {
             "name": "date_from",
             "in": "query",
             "required": false,
@@ -2208,6 +2230,89 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/insights/{insight_id}/workflow": {
+      "patch": {
+        "tags": [
+          "Insights"
+        ],
+        "summary": "Update Workflow",
+        "operationId": "update_workflow_api_v1_insights__insight_id__workflow_patch",
+        "parameters": [
+          {
+            "name": "insight_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Insight Id"
+            }
+          },
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsightWorkflowUpdate"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -4213,6 +4318,34 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "workflow_status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "in_progress",
+              "reviewed",
+              "dismissed"
+            ],
+            "title": "Workflow Status",
+            "default": "new"
+          },
+          "workflow_note": {
+            "type": "string",
+            "title": "Workflow Note",
+            "default": ""
+          },
+          "workflow_updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Updated At"
           }
         },
         "type": "object",
@@ -4230,6 +4363,32 @@
           "created_at"
         ],
         "title": "InsightRead"
+      },
+      "InsightWorkflowUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "in_progress",
+              "reviewed",
+              "dismissed"
+            ],
+            "title": "Status"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "note"
+        ],
+        "title": "InsightWorkflowUpdate"
       },
       "InsightsRead": {
         "properties": {
