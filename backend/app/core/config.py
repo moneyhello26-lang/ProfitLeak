@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     )
     import_signing_key: SecretStr = SecretStr("profitleak-local-demo-change-before-deployment")
     import_token_ttl_seconds: int = Field(default=900, ge=60, le=3600)
+    session_cookie_secure: bool = False
+    session_ttl_hours: int = Field(default=168, ge=1, le=720)
     llm_enabled: bool = False
     llm_provider: Literal["openai", "gemini"] = "openai"
     openai_api_key: SecretStr = SecretStr("")

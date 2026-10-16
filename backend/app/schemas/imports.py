@@ -25,6 +25,7 @@ class BusinessRead(BusinessCreate):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     created_at: datetime
+    is_demo: bool
 
 
 class RowBase(BaseModel):

@@ -211,4 +211,8 @@ def test_migration_downgrade_and_upgrade(database_connection):
             "expenses",
             "insights",
             "analysis_runs",
+            "users",
+            "user_sessions",
+            "business_memberships",
+            "account_bootstrap",
         }

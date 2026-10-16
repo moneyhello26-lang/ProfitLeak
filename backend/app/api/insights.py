@@ -23,7 +23,7 @@ ERRORS = {status: {"model": ErrorResponse} for status in (400, 404)}
 
 @router.post("/analysis/run", response_model=AnalysisRead, responses=ERRORS)
 def analyze(db: Database, request: AnalysisRequest):
-    business = require_business(db, request.business_id)
+    business = require_business(db, request.business_id, ("owner", "analyst"))
     period = resolve_period(db, business, request.date_from, request.date_to)
     result = insights.run_analysis(db, business.id, period)
     db.commit()

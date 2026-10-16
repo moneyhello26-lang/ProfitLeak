@@ -2,14 +2,16 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.dependencies import Database, require_business
+from app.api.dependencies import Database, current_user, require_business
 from app.core.config import Settings, get_settings
 from app.schemas.advisor import AdvisorRequest, AdvisorResponse, AdvisorStatus
 from app.schemas.imports import ErrorResponse
 from app.services import advisor
 from app.services.analytics import resolve_period
 
-router = APIRouter(prefix="/api/v1/advisor", tags=["Advisor"])
+router = APIRouter(
+    prefix="/api/v1/advisor", tags=["Advisor"], dependencies=[Depends(current_user)]
+)
 Configuration = Annotated[Settings, Depends(get_settings)]
 
 

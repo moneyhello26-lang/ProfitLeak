@@ -5,6 +5,11 @@ ProfitLeak работает без Docker: SQLite, FastAPI и React. Для бе
 провайдер. При отсутствии ключа, разрешения или доступной квоты чат использует
 локальные шаблоны. Импорт, финансовые расчёты, детектор и PDF работают без LLM.
 
+Для доступа к советнику и PDF сначала войдите или зарегистрируйтесь на сайте.
+Они доступны владельцу, аналитику и наблюдателю выбранного бизнеса. Язык ответа
+и PDF выбирается переключателем **RU / ҚАЗ**. Настройка команды, сеансов и
+авторизованных API-запросов: [гайд аккаунтов](ACCOUNTS_AND_LANGUAGE_GUIDE.md).
+
 ## Быстрый запуск бесплатного режима
 
 1. Получите отдельный ключ в [Google AI Studio](https://aistudio.google.com/apikey).
@@ -98,8 +103,22 @@ Gemini требует разрешения на этого провайдера;
 
 ## Проверка без расходования токенов
 
+В PowerShell войдите существующим аккаунтом; в поле имени пользователя укажите
+его email. Cookie сохраняется в `$profitLeakSession` для следующего запроса:
+
 ```powershell
-Invoke-RestMethod http://127.0.0.1:8000/api/v1/advisor/status
+$profitLeakCredential = Get-Credential -Message 'Вход в ProfitLeak: email и пароль'
+$profitLeakLoginBody = @{
+    email = $profitLeakCredential.UserName
+    password = $profitLeakCredential.GetNetworkCredential().Password
+} | ConvertTo-Json
+Invoke-RestMethod http://127.0.0.1:8000/api/v1/auth/login `
+    -Method Post -ContentType 'application/json' -Body $profitLeakLoginBody `
+    -Headers @{ Origin = 'http://127.0.0.1:5173' } `
+    -SessionVariable profitLeakSession | Out-Null
+Remove-Variable profitLeakLoginBody, profitLeakCredential
+Invoke-RestMethod http://127.0.0.1:8000/api/v1/advisor/status `
+    -WebSession $profitLeakSession
 ```
 
 При правильной конфигурации ожидаются `provider=gemini`,

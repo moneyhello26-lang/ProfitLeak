@@ -6,7 +6,7 @@ from fastapi import APIRouter, File, Form, Query, UploadFile
 from sqlalchemy import select
 
 from app.api.dependencies import Database, require_business
-from app.models import Business, ImportBatch
+from app.models import Business, BusinessMembership, ImportBatch
 from app.schemas.imports import (
     BusinessCreate,
     BusinessRead,
@@ -38,6 +38,12 @@ def read_upload(file: UploadFile, kind: ImportKind):
 def create_business(payload: BusinessCreate, db: Database):
     business = Business(**payload.model_dump())
     db.add(business)
+    db.flush()
+    db.add(
+        BusinessMembership(
+            business_id=business.id, user_id=db.info["current_user"].id, role="owner"
+        )
+    )
     db.commit()
     db.refresh(business)
     return business
@@ -50,7 +56,12 @@ def list_businesses(
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
     return db.scalars(
-        select(Business).order_by(Business.created_at, Business.id).offset(offset).limit(limit)
+        select(Business)
+        .join(BusinessMembership)
+        .where(BusinessMembership.user_id == db.info["current_user"].id)
+        .order_by(Business.created_at, Business.id)
+        .offset(offset)
+        .limit(limit)
     ).all()
 
 
@@ -61,7 +72,7 @@ def preview_import(
     kind: Annotated[ImportKind, Form()],
     file: Annotated[UploadFile, File()],
 ):
-    require_business(db, business_id)
+    require_business(db, business_id, ("owner", "analyst"))
     parsed = read_upload(file, kind)
     existing = None
     token = None
@@ -95,7 +106,7 @@ def confirm(
     file: Annotated[UploadFile, File()],
     preview_token: Annotated[str, Form(max_length=2048)],
 ):
-    require_business(db, business_id)
+    require_business(db, business_id, ("owner", "analyst"))
     parsed = read_upload(file, kind)
     verify_token(preview_token, business_id, kind, parsed.file_sha256)
     batch, already_imported = confirm_import(db, business_id, kind, parsed)

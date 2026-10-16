@@ -16,7 +16,18 @@ class Period(BaseModel):
 class Metric(BaseModel):
     value: Decimal | None
     status: Literal["available", "insufficient_data", "not_applicable"]
-    reason: Literal["no_sales", "missing_cost", "no_expenses", "zero_revenue"] | None = None
+    reason: (
+        Literal[
+            "no_sales",
+            "missing_cost",
+            "no_expenses",
+            "zero_revenue",
+            "insufficient_history",
+            "incomplete_sales_calendar",
+            "incomplete_expense_calendar",
+        ]
+        | None
+    ) = None
 
 
 class DashboardSummary(BaseModel):

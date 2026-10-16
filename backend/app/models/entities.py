@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     CheckConstraint,
     ForeignKey,
     ForeignKeyConstraint,
@@ -14,6 +15,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -42,6 +44,7 @@ class Business(RecordMixin, Base):
 
     name: Mapped[str] = mapped_column(String(200))
     industry: Mapped[str] = mapped_column(String(100))
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     currency: Mapped[str] = mapped_column(String(3), default="KZT", server_default="KZT")
     timezone: Mapped[str] = mapped_column(
         String(50), default="Asia/Almaty", server_default="Asia/Almaty"

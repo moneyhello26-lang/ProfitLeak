@@ -1,13 +1,13 @@
 import csv
 import io
 from datetime import date, timedelta
-from uuid import NAMESPACE_URL, uuid5
+from uuid import NAMESPACE_URL, UUID, uuid5
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.statements import insert
-from app.models import Business, Expense, Product, Sale
+from app.models import Business, BusinessMembership, Expense, Product, Sale
 from app.schemas.analytics import DemoLoad, Period
 from app.schemas.imports import BusinessRead
 from app.services.import_parser import parse_file
@@ -67,22 +67,38 @@ def build_demo_files() -> dict[str, bytes]:
     }
 
 
-def load_demo(db: Session) -> DemoLoad:
+def load_demo(db: Session, user_id: UUID | None = None) -> DemoLoad:
+    business_id = (
+        uuid5(NAMESPACE_URL, f"profitleak/demo/{DEMO_VERSION}/{user_id}")
+        if user_id
+        else DEMO_BUSINESS_ID
+    )
     with db.begin_nested():
         db.execute(
             insert(db, Business)
-            .values(id=DEMO_BUSINESS_ID, name="Кафе Тараз — демо", industry="cafe")
+            .values(id=business_id, name="Кафе Тараз — демо", industry="cafe", is_demo=True)
             .on_conflict_do_nothing(index_elements=[Business.id])
         )
+        if user_id is not None:
+            db.execute(
+                insert(db, BusinessMembership)
+                .values(business_id=business_id, user_id=user_id, role="owner")
+                .on_conflict_do_nothing(
+                    index_elements=[BusinessMembership.business_id, BusinessMembership.user_id]
+                )
+            )
         existed = []
         for kind, data in build_demo_files().items():
             parsed = parse_file(f"{DEMO_VERSION}_{kind}.csv", data, kind)
-            _, already_imported = confirm_import(db, DEMO_BUSINESS_ID, kind, parsed)
+            _, already_imported = confirm_import(db, business_id, kind, parsed)
             existed.append(already_imported)
-        business = db.get(Business, DEMO_BUSINESS_ID)
+        business = db.get(Business, business_id)
+        # Reopening an existing personal demo also repairs metadata from older builds.
+        business.is_demo = True
+        db.flush()
         counts = {
             model: db.scalar(
-                select(func.count()).select_from(model).where(model.business_id == DEMO_BUSINESS_ID)
+                select(func.count()).select_from(model).where(model.business_id == business_id)
             )
             for model in (Sale, Expense, Product)
         }

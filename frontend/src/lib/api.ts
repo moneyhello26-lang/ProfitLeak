@@ -1,4 +1,8 @@
 import type { components } from '../types/api'
+import { getLocale, localizedRecord, tr } from '../locale.ts'
+import { dateLabel } from './dates.ts'
+export { dateLabel, dateTimeLabel } from './dates.ts'
+import { authRequestEpoch } from './authEpoch.ts'
 
 export type Business = components['schemas']['BusinessRead']
 export type Period = components['schemas']['Period']
@@ -19,20 +23,28 @@ export type InsightType = Insight['type']
 export type Severity = Insight['severity']
 export type AdvisorStatus = components['schemas']['AdvisorStatus']
 export type AdvisorReply = components['schemas']['AdvisorResponse']
+export type Comparison = components['schemas']['PeriodComparison']
+export type ComparedMetric = components['schemas']['MetricComparison']
+export type Forecast = components['schemas']['FinancialForecast']
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const requestEpoch = authRequestEpoch()
   let response: Response
-  try { response = await fetch(`/api/v1${path}`, init) }
+  const headers = new Headers(init?.headers)
+  headers.set('Accept-Language', getLocale())
+  try { response = await fetch(`/api/v1${path}`, { ...init, credentials: 'include', headers }) }
   catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error
-    throw new Error('Не удалось связаться с сервером. Проверьте подключение и попробуйте ещё раз.')
+    throw new Error(tr('Не удалось связаться с сервером. Проверьте подключение и попробуйте ещё раз.'))
   }
+  if (response.status === 401 && requestEpoch === authRequestEpoch() && !init?.signal?.aborted && typeof window !== 'undefined') window.dispatchEvent(new Event('profitleak:unauthorized'))
+  if (response.status === 204) return undefined as T
   const body = await response.json().catch(() => null)
   if (!response.ok) {
     const detail = body?.detail
     throw new Error(typeof detail?.message === 'string' ? detail.message :
-      response.status === 422 ? 'Проверьте заполненные поля и выбранный период (не более 366 дней).' :
-      'Не удалось загрузить данные. Проверьте, что сервер и база данных запущены.')
+      response.status === 422 ? tr(path.startsWith('/auth/') || path.includes('/members') ? 'Проверьте заполненные поля.' : 'Проверьте заполненные поля и выбранный период (не более 366 дней).') :
+      tr('Не удалось загрузить данные. Проверьте, что сервер и база данных запущены.'))
   }
   return body as T
 }
@@ -44,10 +56,12 @@ export function query(businessId: string, period: Period | null) {
 }
 
 export async function downloadPdf(businessId: string, period: Period | null) {
-  const response = await fetch(`/api/v1/reports/pdf?${query(businessId, period)}`)
+  const requestEpoch = authRequestEpoch()
+  const response = await fetch(`/api/v1/reports/pdf?${query(businessId, period)}`, { credentials: 'include', headers: { 'Accept-Language': getLocale() } })
+  if (response.status === 401 && requestEpoch === authRequestEpoch()) window.dispatchEvent(new Event('profitleak:unauthorized'))
   if (!response.ok) {
     const body = await response.json().catch(() => null)
-    throw new Error(body?.detail?.message || 'Не удалось сформировать PDF. Проверьте период и подключение к серверу.')
+    throw new Error(body?.detail?.message || tr('Не удалось сформировать PDF. Проверьте период и подключение к серверу.'))
   }
   const blob = await response.blob()
   const url = URL.createObjectURL(blob)
@@ -69,19 +83,19 @@ export function decimal(value: string | null | undefined, fraction = 0): string 
   return `${negative ? '−' : ''}${digits}${places ? ',' + tail.padEnd(places, '0') : ''}`
 }
 export function money(value: string | null | undefined) { return value == null ? '—' : `${decimal(value)} ₸` }
-export function dateLabel(value: string, year = false) {
-  return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', ...(year ? { year: 'numeric' } : {}), timeZone: 'UTC' }).format(new Date(`${value}T12:00:00Z`)).replace(' г.', '')
-}
 export function periodLabel(period: Period | null) {
-  return period ? `${dateLabel(period.date_from)} — ${dateLabel(period.date_to, true)}` : 'Последние 90 дней'
+  return period ? `${dateLabel(period.date_from)} — ${dateLabel(period.date_to, true)}` : tr('Последние 90 дней')
 }
-export const metricReason: Record<string, string> = {
+export const metricReason: Record<string, string> = localizedRecord({
   no_sales: 'Нет продаж за этот период', missing_cost: 'Не указана себестоимость части продаж',
   no_expenses: 'Нет расходов за этот период', zero_revenue: 'Нулевая выручка: маржа не рассчитывается',
-}
-export const categoryLabel: Record<string, string> = {
+  insufficient_history: 'Нужно не менее 28 календарных дней истории',
+  incomplete_sales_calendar: 'Есть дни без записей о продажах',
+  incomplete_expense_calendar: 'Есть дни без записей о расходах',
+})
+export const categoryLabel: Record<string, string> = localizedRecord({
   packaging: 'Упаковка', wages: 'Зарплата', utilities: 'Коммунальные услуги', rent: 'Аренда',
   Packaging: 'Упаковка', Wages: 'Зарплата', Utilities: 'Коммунальные услуги', Rent: 'Аренда',
-}
-export const productLabel: Record<string, string> = { Coffee: 'Кофе', Tea: 'Чай', Sandwich: 'Сэндвич' }
-export const kindLabel: Record<ImportKind, string> = { sales: 'Продажи', expenses: 'Расходы', products: 'Товары' }
+})
+export const productLabel: Record<string, string> = localizedRecord({ Coffee: 'Кофе', Tea: 'Чай', Sandwich: 'Сэндвич' })
+export const kindLabel: Record<ImportKind, string> = localizedRecord({ sales: 'Продажи', expenses: 'Расходы', products: 'Товары' })

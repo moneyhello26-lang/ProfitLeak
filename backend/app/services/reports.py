@@ -22,10 +22,11 @@ from reportlab.platypus import (
 )
 from sqlalchemy.orm import Session
 
+from app.core.i18n import translate
 from app.models import Business
 from app.schemas.analytics import Period
 from app.services import analytics, insights
-from app.services.advisor import ENTITY_LABELS, LABELS, formatted, signal_title
+from app.services.advisor import LABELS, formatted, signal_title
 
 FONT = "ProfitLeakSans"
 pdfmetrics.registerFont(
@@ -58,8 +59,8 @@ STYLES = {
 }
 
 
-def paragraph(text, style="body"):
-    text = str(text)
+def paragraph(text, style="body", system=True):
+    text = translate(str(text)) if system else str(text)
     for dash in ("\u2011", "\u2013", "\u2014"):
         text = text.replace(dash, "-")
     return Paragraph(escape(text).replace("\n", "<br/>"), STYLES[style])
@@ -71,7 +72,10 @@ def dates(period):
 
 def table(rows, widths):
     result = Table(
-        [[paragraph(cell, "small") for cell in row] for row in rows],
+        [
+            [paragraph(cell, "small", system=index == 0) for cell in row]
+            for index, row in enumerate(rows)
+        ],
         colWidths=widths,
         repeatRows=1,
         hAlign="LEFT",
@@ -98,10 +102,10 @@ def decoration(canvas, doc):
     width, height = A4
     canvas.setFont(FONT, 8)
     canvas.setFillColor(TEAL)
-    canvas.drawString(42, height - 28, "ProfitLeak AI / Финансы под контролем")
+    canvas.drawString(42, height - 28, translate("ProfitLeak AI / Финансы под контролем"))
     canvas.setFillColor(MUTED)
-    canvas.drawString(42, 27, "Сформировано локально / KZT / Шаблонные рекомендации")
-    canvas.drawRightString(width - 42, 27, f"Страница {doc.page}")
+    canvas.drawString(42, 27, translate("Сформировано локально / KZT / Шаблонные рекомендации"))
+    canvas.drawRightString(width - 42, 27, translate("Страница {page}").format(page=doc.page))
     canvas.restoreState()
 
 
@@ -118,29 +122,42 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
         leftMargin=42,
         topMargin=51,
         bottomMargin=47,
-        title="ProfitLeak AI - Финансовый отчёт",
+        title=translate("ProfitLeak AI - Финансовый отчёт"),
         author="ProfitLeak AI",
     )
     width = A4[0] - 84
     now = datetime.now(timezone.utc).astimezone(ZoneInfo("Asia/Almaty"))
     content = [
         paragraph("Финансовый отчёт", "title"),
-        paragraph(business.name),
-        paragraph(f"Период: {dates(period)}\nСформирован: {now:%d.%m.%Y %H:%M} (Алматы)", "small"),
+        paragraph(business.name, system=False),
+        paragraph(
+            translate("Период: {period}\nСформирован: {time} (Алматы)").format(
+                period=dates(period), time=now.strftime("%d.%m.%Y %H:%M")
+            ),
+            "small",
+        ),
         paragraph("Основные показатели", "heading"),
     ]
     rows = [["Показатель", "Значение"]]
     for key, label in LABELS.items():
         metric = getattr(overview, key)
         rows.append(
-            [label, formatted(metric.value, "%" if key == "gross_margin_percent" else "KZT")]
+            [
+                translate(label),
+                formatted(metric.value, "%" if key == "gross_margin_percent" else "KZT"),
+            ]
         )
     content.append(table(rows, [width * 0.56, width * 0.44]))
     content.append(
         paragraph(
-            f"Подтверждённые строки: продажи {overview.sales_rows}, "
-            f"расходы {overview.expense_rows}. "
-            f"Продажи без себестоимости: {overview.missing_cost_rows}.",
+            translate(
+                "Подтверждённые строки: продажи {sales}, расходы {expenses}. "
+                "Продажи без себестоимости: {missing}."
+            ).format(
+                sales=overview.sales_rows,
+                expenses=overview.expense_rows,
+                missing=overview.missing_cost_rows,
+            ),
             "small",
         )
     )
@@ -160,7 +177,7 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
                     ["Категория", "Сумма", "Строки"],
                     *[
                         [
-                            ENTITY_LABELS.get(row.category, row.category),
+                            row.category,
                             formatted(row.amount),
                             row.expense_rows,
                         ]
@@ -172,7 +189,10 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
         )
         content.append(
             paragraph(
-                f"Показано {min(10, len(categories))} из {len(categories)} категорий.", "small"
+                translate("Показано {shown} из {total} категорий.").format(
+                    shown=min(10, len(categories)), total=len(categories)
+                ),
+                "small",
             )
         )
     else:
@@ -185,7 +205,7 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
                     ["Товар", "Выручка", "Валовая прибыль", "Маржа"],
                     *[
                         [
-                            ENTITY_LABELS.get(row.name, row.name),
+                            row.name,
                             formatted(row.revenue.value),
                             formatted(row.gross_profit.value),
                             formatted(row.gross_margin_percent.value, "%"),
@@ -198,8 +218,9 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
         )
         content.append(
             paragraph(
-                f"Показано {len(products.items)} из {products.total} товаров. "
-                "Полный список доступен в приложении.",
+                translate(
+                    "Показано {shown} из {total} товаров. Полный список доступен в приложении."
+                ).format(shown=len(products.items), total=products.total),
                 "small",
             )
         )
@@ -224,9 +245,16 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
     else:
         content.append(
             paragraph(
-                f"Правила: {saved.analysis.rules_version}. Сигналов: {saved.total}. "
-                f"Показано: {len(saved.items)}. Анализ: "
-                f"{saved.analysis.analyzed_at.astimezone(ZoneInfo('Asia/Almaty')):%d.%m.%Y %H:%M}.",
+                translate(
+                    "Правила: {version}. Сигналов: {total}. Показано: {shown}. Анализ: {time}."
+                ).format(
+                    version=saved.analysis.rules_version,
+                    total=saved.total,
+                    shown=len(saved.items),
+                    time=saved.analysis.analyzed_at.astimezone(ZoneInfo("Asia/Almaty")).strftime(
+                        "%d.%m.%Y %H:%M"
+                    ),
+                ),
                 "small",
             )
         )
@@ -250,7 +278,9 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
                 content.append(
                     paragraph(
                         f"{check.type}: {check.reason} "
-                        f"Пропущено объектов: {check.skipped_entities}.",
+                        + translate("Пропущено объектов: {count}.").format(
+                            count=check.skipped_entities
+                        ),
                         "small",
                     )
                 )
@@ -260,7 +290,10 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
             "пересекаться, не суммируются и не гарантируют экономию."
         )
     )
-    priority = {"high": "Высокий", "medium": "Средний", "low": "Низкий"}
+    priority = {
+        key: translate(value)
+        for key, value in {"high": "Высокий", "medium": "Средний", "low": "Низкий"}.items()
+    }
     for index, item in enumerate(saved.items):
         if index:
             content.append(PageBreak())
@@ -270,9 +303,14 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
                 Spacer(1, 8),
                 paragraph(signal_title(item), "heading"),
                 paragraph(
-                    f"Приоритет: {priority[item.severity]}. "
-                    f"Достоверность: {priority[item.confidence]}. "
-                    f"Текущий период: {dates(ev.current_period)}.",
+                    translate(
+                        "Приоритет: {priority}. Достоверность: {confidence}. "
+                        "Текущий период: {period}."
+                    ).format(
+                        priority=priority[item.severity],
+                        confidence=priority[item.confidence],
+                        period=dates(ev.current_period),
+                    ),
                     "small",
                 ),
                 paragraph(ev.explanation),
@@ -281,42 +319,49 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
         metrics = [
             ["Факт", "Значение"],
             [
-                "Текущее значение",
+                translate("Текущее значение"),
                 formatted(ev.current_value, "%" if ev.value_unit == "percent" else "KZT"),
             ],
         ]
         if ev.baseline_value is not None:
             metrics.append(
                 [
-                    "Базовое значение",
+                    translate("Базовое значение"),
                     formatted(ev.baseline_value, "%" if ev.value_unit == "percent" else "KZT"),
                 ]
             )
         if ev.deviation_percent is not None:
-            metrics.append(["Изменение", formatted(ev.deviation_percent, "%")])
+            metrics.append([translate("Изменение"), formatted(ev.deviation_percent, "%")])
         if ev.deviation_pp is not None:
-            metrics.append(["Изменение маржи", formatted(ev.deviation_pp, "п.п.")])
+            metrics.append([translate("Изменение маржи"), formatted(ev.deviation_pp, "п.п.")])
         metrics.append(
             [
-                "Сценарная оценка",
+                translate("Сценарная оценка"),
                 formatted(item.potential_savings_kzt)
                 if item.potential_savings_kzt is not None
-                else "Не оценена",
+                else translate("Не оценена"),
             ]
         )
         content.append(table(metrics, [width * 0.52, width * 0.48]))
         if ev.baseline_period:
-            content.append(paragraph(f"Базовый период: {dates(ev.baseline_period)}.", "small"))
+            content.append(
+                paragraph(
+                    translate("Базовый период: {period}.").format(period=dates(ev.baseline_period)),
+                    "small",
+                )
+            )
         content.extend(
             [
-                paragraph("Правило: " + ev.formula),
+                paragraph(translate("Правило: ") + ev.formula),
                 paragraph(ev.caveat, "small"),
                 paragraph("Что проверить", "heading"),
                 paragraph(item.recommendation),
             ]
         )
         if ev.savings_assumption:
-            content.append(paragraph("Условие оценки: " + ev.savings_assumption, "small"))
+            content.append(
+                paragraph(translate("Условие оценки: ") + ev.savings_assumption, "small")
+            )
         source_rows = ev.source_rows[:6]
         if ev.baseline_period:
             source_rows = [
@@ -345,10 +390,11 @@ def export_pdf(db: Session, business: Business, period: Period) -> bytes:
             [width * 0.43, width * 0.12, width * 0.21, width * 0.24],
         )
         source_note = paragraph(
-            f"Показано {len(source_rows)} из "
-            f"{ev.source_rows_total} исходных строк; полный образец "
-            "доступен в детекторе. Возвраты показаны положительными "
-            "суммами и вычитаются при расчётах.",
+            translate(
+                "Показано {shown} из {total} исходных строк; полный образец "
+                "доступен в детекторе. Возвраты показаны положительными "
+                "суммами и вычитаются при расчётах."
+            ).format(shown=len(source_rows), total=ev.source_rows_total),
             "small",
         )
         content.append(KeepTogether([paragraph("Источники", "heading"), source_table, source_note]))

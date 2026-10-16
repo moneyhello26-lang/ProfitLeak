@@ -152,9 +152,15 @@ def sales_groups(db: Session, business_id: UUID, period: Period, group_by: str |
     return groups
 
 
-def expense_groups(db: Session, business_id: UUID, period: Period, by_category: bool = False):
+def expense_groups(
+    db: Session,
+    business_id: UUID,
+    period: Period,
+    by_category: bool = False,
+    group_by: str | None = None,
+):
     statement = (
-        select(Expense.category, Expense.record_type, Expense.amount)
+        select(Expense.date, Expense.category, Expense.record_type, Expense.amount)
         .where(*bounds(Expense, business_id, period))
         .execution_options(yield_per=1000)
     )
@@ -162,7 +168,9 @@ def expense_groups(db: Session, business_id: UUID, period: Period, by_category: 
     with localcontext() as context, db.execute(statement) as records:
         context.prec = 64
         for record in records:
-            key = record.category if by_category else None
+            key = (
+                record.category if by_category else getattr(record, group_by) if group_by else None
+            )
             totals = groups.setdefault(key, ExpenseTotals())
             totals.rows += 1
             totals.amount += (-1 if record.record_type == "refund" else 1) * record.amount

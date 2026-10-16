@@ -17,10 +17,10 @@ This file maps those requirements to implementation; it does not replace the sou
 | FR-10 Demo | Repeatable 90 day Taraz cafe; three independently checked detector scenarios |
 | FR-11 Advisor chat | Business/date scoped chat, bounded transient history, source labels and backend facts; offline fallback |
 | FR-12 PDF | Local PDF with KPIs, expenses, products, evidence, recommendations and stale/missing analysis notices |
-| FR-13 Kazakh language | Pending P1; Russian interface implemented |
-| FR-14 Period comparison | Detector compares equal windows; general comparison dashboard remains P1 |
-| FR-15 Forecasts | Pending P2 |
-| FR-16 Accounts and roles | Pending P2; current deployment is local synthetic demo only |
+| FR-13 Kazakh language | RU/KK selector with persistence; all pages, locale dates, import errors, evidence, advisor/templates/LLM and PDF; request-local backend locale and Kazakh font glyphs |
+| FR-14 Period comparison | Separate dashboard: previous/custom non-overlapping periods, six KPIs, absolute/relative/daily changes, margin points, aligned revenue chart, paginated products and expense categories |
+| FR-15 Forecasts | Local weekday-average forecast, 1–90 day API horizon, sales/expense scenarios, independent 7-day holdout, explicit data coverage and assumptions; no LLM dependency |
+| FR-16 Accounts and roles | Registration/login/logout/password change, hashed passwords and revocable HttpOnly sessions; owner/analyst/viewer per business; server authorization, membership management, atomic adoption of existing data and personal demo |
 
 SQLite is the default database, matching the source document and the user's
 request to run without Docker. Money is stored as integer cents, quantities as
@@ -28,6 +28,11 @@ integer thousandths; Python receives Decimal values with no float conversion.
 PostgreSQL remains an optional driver and is not required for setup or tests.
 The existing custom CSS is preserved instead of Tailwind/shadcn.
 ML and LLM are not prerequisites for deterministic detection.
+Comparison and forecasts use confirmed imports and Decimal calculations, scoped
+to the selected business. See [planning guide](docs/PLANNING_GUIDE.md) for formulas,
+data requirements, API parameters, and a hand-checkable demo.
+See [accounts and language guide](docs/ACCOUNTS_AND_LANGUAGE_GUIDE.md) for the
+first-account transition, permissions, sessions and bilingual usage.
 
 ## Analysis contract
 

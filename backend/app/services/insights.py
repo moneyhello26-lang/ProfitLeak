@@ -4,6 +4,7 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 from sqlalchemy import case, delete, func, select
 from sqlalchemy.orm import Session
 
+from app.core.i18n import localized_model, translate
 from app.models import AnalysisRun, Business, Expense, ImportBatch, Insight, Product, Sale
 from app.schemas.analytics import Period
 from app.schemas.insights import AnalysisRead, InsightRead, InsightsRead, Severity, SourceRow
@@ -75,13 +76,15 @@ def records(db: Session, business_id: UUID, period: Period):
 
 def read_analysis(db: Session, run: AnalysisRun) -> AnalysisRead:
     result = {key: value for key, value in run.result_json.items() if key != "source_imports"}
-    return AnalysisRead(
-        id=run.id,
-        business_id=run.business_id,
-        period=Period(date_from=run.period_start, date_to=run.period_end),
-        analyzed_at=run.analyzed_at,
-        stale=run.result_json["source_imports"] != source_imports(db, run.business_id),
-        **result,
+    return localized_model(
+        AnalysisRead(
+            id=run.id,
+            business_id=run.business_id,
+            period=Period(date_from=run.period_start, date_to=run.period_end),
+            analyzed_at=run.analyzed_at,
+            stale=run.result_json["source_imports"] != source_imports(db, run.business_id),
+            **result,
+        )
     )
 
 
@@ -148,7 +151,7 @@ def run_analysis(db: Session, business_id: UUID, period: Period) -> AnalysisRead
 
 
 def read_insight(insight: Insight) -> InsightRead:
-    return InsightRead(
+    result = InsightRead(
         id=insight.id,
         business_id=insight.business_id,
         type=insight.type,
@@ -161,6 +164,9 @@ def read_insight(insight: Insight) -> InsightRead:
         recommendation=insight.recommendation,
         created_at=insight.created_at,
     )
+    if insight.type == "SALES_DROP":
+        result.evidence.entity = translate("Все товары")
+    return localized_model(result)
 
 
 def list_insights(

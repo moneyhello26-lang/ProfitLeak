@@ -5,6 +5,812 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "Register",
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "Me",
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password": {
+      "post": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "Change Password",
+        "operationId": "change_password_api_v1_auth_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/businesses/{business_id}/members": {
+      "get": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "List Members",
+        "operationId": "list_members_api_v1_businesses__business_id__members_get",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemberRead"
+                  },
+                  "title": "Response List Members Api V1 Businesses  Business Id  Members Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "Add Member",
+        "operationId": "add_member_api_v1_businesses__business_id__members_post",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMemberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/businesses/{business_id}/members/{user_id}": {
+      "patch": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "Change Role",
+        "operationId": "change_role_api_v1_businesses__business_id__members__user_id__patch",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Accounts and roles"
+        ],
+        "summary": "Remove Member",
+        "operationId": "remove_member_api_v1_businesses__business_id__members__user_id__delete",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/businesses": {
       "post": {
         "tags": [
@@ -814,6 +1620,340 @@
         }
       }
     },
+    "/api/v1/analytics/comparison": {
+      "get": {
+        "tags": [
+          "Planning"
+        ],
+        "summary": "Compare Periods",
+        "operationId": "compare_periods_api_v1_analytics_comparison_get",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "baseline_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Baseline From"
+            }
+          },
+          {
+            "name": "baseline_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Baseline To"
+            }
+          },
+          {
+            "name": "products_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Products Limit"
+            }
+          },
+          {
+            "name": "products_offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Products Offset"
+            }
+          },
+          {
+            "name": "categories_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Categories Limit"
+            }
+          },
+          {
+            "name": "categories_offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Categories Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodComparison"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/forecast": {
+      "get": {
+        "tags": [
+          "Planning"
+        ],
+        "summary": "Financial Forecast",
+        "operationId": "financial_forecast_api_v1_analytics_forecast_get",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          },
+          {
+            "name": "horizon_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 30,
+              "title": "Horizon Days"
+            }
+          },
+          {
+            "name": "complete_calendar",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Complete Calendar"
+            }
+          },
+          {
+            "name": "sales_change_percent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 100.0,
+                  "minimum": -50.0
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": "0",
+              "title": "Sales Change Percent"
+            }
+          },
+          {
+            "name": "expense_change_percent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 100.0,
+                  "minimum": -50.0
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": "0",
+              "title": "Expense Change Percent"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialForecast"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/analysis/run": {
       "post": {
         "tags": [
@@ -1313,6 +2453,32 @@
   },
   "components": {
     "schemas": {
+      "AddMemberRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "analyst",
+              "viewer"
+            ],
+            "title": "Role"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "AddMemberRequest"
+      },
       "AdvisorFact": {
         "properties": {
           "id": {
@@ -1733,6 +2899,26 @@
         ],
         "title": "AnalysisRequest"
       },
+      "AuthRead": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserRead"
+          },
+          "memberships": {
+            "items": {
+              "$ref": "#/components/schemas/MembershipRead"
+            },
+            "type": "array",
+            "title": "Memberships"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user",
+          "memberships"
+        ],
+        "title": "AuthRead"
+      },
       "Body_confirm_api_v1_imports_confirm_post": {
         "properties": {
           "business_id": {
@@ -1869,6 +3055,10 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "is_demo": {
+            "type": "boolean",
+            "title": "Is Demo"
           }
         },
         "additionalProperties": false,
@@ -1877,9 +3067,56 @@
           "name",
           "industry",
           "id",
-          "created_at"
+          "created_at",
+          "is_demo"
         ],
         "title": "BusinessRead"
+      },
+      "CategoryComparison": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "presence": {
+            "type": "string",
+            "enum": [
+              "both",
+              "current_only",
+              "baseline_only"
+            ],
+            "title": "Presence"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MetricComparison"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "presence",
+          "amount"
+        ],
+        "title": "CategoryComparison"
+      },
+      "ChangeRoleRequest": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "analyst",
+              "viewer"
+            ],
+            "title": "Role"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "title": "ChangeRoleRequest"
       },
       "ChatMessage": {
         "properties": {
@@ -1904,6 +3141,53 @@
           "content"
         ],
         "title": "ChatMessage"
+      },
+      "ComparisonPoint": {
+        "properties": {
+          "day": {
+            "type": "integer",
+            "title": "Day"
+          },
+          "current_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Date"
+          },
+          "baseline_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Date"
+          },
+          "current": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/Metric"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "current_date",
+          "baseline_date",
+          "current",
+          "baseline"
+        ],
+        "title": "ComparisonPoint"
       },
       "DashboardSummary": {
         "properties": {
@@ -2139,6 +3423,278 @@
           "amount"
         ],
         "title": "ExpensesRow"
+      },
+      "FinancialForecast": {
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "currency": {
+            "type": "string",
+            "const": "KZT",
+            "title": "Currency",
+            "default": "KZT"
+          },
+          "period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "training_period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "forecast_period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "horizon_days": {
+            "type": "integer",
+            "title": "Horizon Days"
+          },
+          "training_days": {
+            "type": "integer",
+            "title": "Training Days"
+          },
+          "observed_sales_days": {
+            "type": "integer",
+            "title": "Observed Sales Days"
+          },
+          "observed_expense_days": {
+            "type": "integer",
+            "title": "Observed Expense Days"
+          },
+          "complete_calendar": {
+            "type": "boolean",
+            "title": "Complete Calendar"
+          },
+          "sales_change_percent": {
+            "type": "string",
+            "title": "Sales Change Percent"
+          },
+          "expense_change_percent": {
+            "type": "string",
+            "title": "Expense Change Percent"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "partial",
+              "insufficient_data"
+            ],
+            "title": "Status"
+          },
+          "method": {
+            "type": "string",
+            "const": "weekday_mean_30d",
+            "title": "Method",
+            "default": "weekday_mean_30d"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastPoint"
+            },
+            "type": "array",
+            "title": "History"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastPoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/ForecastTotals"
+          },
+          "baseline_totals": {
+            "$ref": "#/components/schemas/ForecastTotals"
+          },
+          "backtest": {
+            "$ref": "#/components/schemas/ForecastBacktest"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_id",
+          "period",
+          "training_period",
+          "forecast_period",
+          "horizon_days",
+          "training_days",
+          "observed_sales_days",
+          "observed_expense_days",
+          "complete_calendar",
+          "sales_change_percent",
+          "expense_change_percent",
+          "status",
+          "history",
+          "points",
+          "totals",
+          "baseline_totals",
+          "backtest",
+          "assumptions",
+          "warnings"
+        ],
+        "title": "FinancialForecast"
+      },
+      "ForecastBacktest": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "insufficient_data"
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "training_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "test_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "days": {
+            "type": "integer",
+            "title": "Days",
+            "default": 0
+          },
+          "revenue_mae": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Mae"
+          },
+          "revenue_wape_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Wape Percent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ForecastBacktest"
+      },
+      "ForecastPoint": {
+        "properties": {
+          "revenue": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "cogs": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "gross_profit": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "gross_margin_percent": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "operating_expenses": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "operating_profit": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revenue",
+          "cogs",
+          "gross_profit",
+          "gross_margin_percent",
+          "operating_expenses",
+          "operating_profit",
+          "date"
+        ],
+        "title": "ForecastPoint"
+      },
+      "ForecastTotals": {
+        "properties": {
+          "revenue": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "cogs": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "gross_profit": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "gross_margin_percent": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "operating_expenses": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "operating_profit": {
+            "$ref": "#/components/schemas/Metric"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revenue",
+          "cogs",
+          "gross_profit",
+          "gross_margin_percent",
+          "operating_expenses",
+          "operating_profit"
+        ],
+        "title": "ForecastTotals"
       },
       "HTTPValidationError": {
         "properties": {
@@ -2727,6 +4283,87 @@
         ],
         "title": "InsightsRead"
       },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "MemberRead": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "analyst",
+              "viewer"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "email",
+          "full_name",
+          "role"
+        ],
+        "title": "MemberRead"
+      },
+      "MembershipRead": {
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "analyst",
+              "viewer"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_id",
+          "role"
+        ],
+        "title": "MembershipRead"
+      },
       "Metric": {
         "properties": {
           "value": {
@@ -2757,7 +4394,10 @@
                   "no_sales",
                   "missing_cost",
                   "no_expenses",
-                  "zero_revenue"
+                  "zero_revenue",
+                  "insufficient_history",
+                  "incomplete_sales_calendar",
+                  "incomplete_expense_calendar"
                 ]
               },
               {
@@ -2773,6 +4413,238 @@
           "status"
         ],
         "title": "Metric"
+      },
+      "MetricComparison": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change"
+          },
+          "change_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Percent"
+          },
+          "current_per_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Per Day"
+          },
+          "baseline_per_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Per Day"
+          },
+          "per_day_change": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Day Change"
+          },
+          "per_day_change_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Day Change Percent"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "money",
+              "percent",
+              "quantity"
+            ],
+            "title": "Unit",
+            "default": "money"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "baseline",
+          "change",
+          "change_percent",
+          "current_per_day",
+          "baseline_per_day",
+          "per_day_change",
+          "per_day_change_percent"
+        ],
+        "title": "MetricComparison"
+      },
+      "NamedComparison": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/Metric"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change"
+          },
+          "change_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Percent"
+          },
+          "current_per_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Per Day"
+          },
+          "baseline_per_day": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Per Day"
+          },
+          "per_day_change": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Day Change"
+          },
+          "per_day_change_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Per Day Change Percent"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "money",
+              "percent",
+              "quantity"
+            ],
+            "title": "Unit",
+            "default": "money"
+          },
+          "name": {
+            "type": "string",
+            "enum": [
+              "revenue",
+              "cogs",
+              "gross_profit",
+              "gross_margin_percent",
+              "operating_expenses",
+              "operating_profit"
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "baseline",
+          "change",
+          "change_percent",
+          "current_per_day",
+          "baseline_per_day",
+          "per_day_change",
+          "per_day_change_percent",
+          "name"
+        ],
+        "title": "NamedComparison"
+      },
+      "PasswordRequest": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Current Password"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 10,
+            "title": "New Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "PasswordRequest"
       },
       "Period": {
         "properties": {
@@ -2793,6 +4665,124 @@
           "date_to"
         ],
         "title": "Period"
+      },
+      "PeriodComparison": {
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "currency": {
+            "type": "string",
+            "const": "KZT",
+            "title": "Currency",
+            "default": "KZT"
+          },
+          "current": {
+            "$ref": "#/components/schemas/DashboardSummary"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/DashboardSummary"
+          },
+          "current_days": {
+            "type": "integer",
+            "title": "Current Days"
+          },
+          "baseline_days": {
+            "type": "integer",
+            "title": "Baseline Days"
+          },
+          "current_sales_days": {
+            "type": "integer",
+            "title": "Current Sales Days"
+          },
+          "baseline_sales_days": {
+            "type": "integer",
+            "title": "Baseline Sales Days"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/NamedComparison"
+            },
+            "type": "array",
+            "title": "Metrics"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ComparisonPoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/ProductComparison"
+            },
+            "type": "array",
+            "title": "Products"
+          },
+          "products_total": {
+            "type": "integer",
+            "title": "Products Total"
+          },
+          "products_offset": {
+            "type": "integer",
+            "title": "Products Offset"
+          },
+          "products_limit": {
+            "type": "integer",
+            "title": "Products Limit"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryComparison"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "categories_total": {
+            "type": "integer",
+            "title": "Categories Total"
+          },
+          "categories_offset": {
+            "type": "integer",
+            "title": "Categories Offset"
+          },
+          "categories_limit": {
+            "type": "integer",
+            "title": "Categories Limit"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_id",
+          "current",
+          "baseline",
+          "current_days",
+          "baseline_days",
+          "current_sales_days",
+          "baseline_sales_days",
+          "metrics",
+          "points",
+          "products",
+          "products_total",
+          "products_offset",
+          "products_limit",
+          "categories",
+          "categories_total",
+          "categories_offset",
+          "categories_limit",
+          "warnings"
+        ],
+        "title": "PeriodComparison"
       },
       "PreviewRow": {
         "properties": {
@@ -2821,6 +4811,56 @@
           "data"
         ],
         "title": "PreviewRow"
+      },
+      "ProductComparison": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "external_id": {
+            "type": "string",
+            "title": "External Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "presence": {
+            "type": "string",
+            "enum": [
+              "both",
+              "current_only",
+              "baseline_only"
+            ],
+            "title": "Presence"
+          },
+          "revenue": {
+            "$ref": "#/components/schemas/MetricComparison"
+          },
+          "gross_profit": {
+            "$ref": "#/components/schemas/MetricComparison"
+          },
+          "gross_margin_percent": {
+            "$ref": "#/components/schemas/MetricComparison"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/MetricComparison"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "external_id",
+          "name",
+          "presence",
+          "revenue",
+          "gross_profit",
+          "gross_margin_percent",
+          "quantity"
+        ],
+        "title": "ProductComparison"
       },
       "ProductProfitability": {
         "properties": {
@@ -2958,6 +4998,36 @@
           "name"
         ],
         "title": "ProductsRow"
+      },
+      "RegisterRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 10,
+            "title": "Password"
+          },
+          "full_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Full Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "password",
+          "full_name"
+        ],
+        "title": "RegisterRequest"
       },
       "RequestValidationDetail": {
         "properties": {
@@ -3235,6 +5305,30 @@
           "amount"
         ],
         "title": "SourceRow"
+      },
+      "UserRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "full_name"
+        ],
+        "title": "UserRead"
       },
       "ValidationError": {
         "properties": {

@@ -33,7 +33,7 @@ SelectedPeriod = Annotated[Period, Depends(query_period)]
 
 @router.post("/demo/load", response_model=DemoLoad)
 def demo(db: Database):
-    loaded = load_demo(db)
+    loaded = load_demo(db, db.info["current_user"].id)
     db.commit()
     return loaded
 

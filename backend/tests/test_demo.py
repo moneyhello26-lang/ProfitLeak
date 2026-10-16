@@ -2,14 +2,17 @@ import json
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from uuid import UUID, uuid4
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import func, inspect, select, text
 
-from app.db.session import get_db
+from app.db.session import get_db, make_engine
 from app.main import app
-from app.models import Business, Expense, ImportBatch, Sale
+from app.models import Business, Expense, ImportBatch, Sale, User
 from app.services import demo
 from app.services.demo import DEMO_BUSINESS_ID, build_demo_files, load_demo
 from app.services.import_parser import parse_file
@@ -40,6 +43,7 @@ def test_load_twice_and_expected_financial_results(db):
         with TestClient(app) as client:
             first = client.post("/api/v1/demo/load")
             assert first.status_code == 200
+            assert first.json()["business"]["is_demo"] is True
             assert first.json()["already_loaded"] is False
             second = client.post("/api/v1/demo/load")
             assert second.json()["already_loaded"] is True
@@ -86,7 +90,7 @@ def test_load_twice_and_expected_financial_results(db):
                 select(func.count())
                 .select_from(Expense)
                 .where(
-                    Expense.business_id == DEMO_BUSINESS_ID,
+                    Expense.business_id == UUID(first.json()["business"]["id"]),
                     Expense.date == date.fromisoformat(duplicate["date"]),
                     Expense.category == duplicate["category"],
                     Expense.description == duplicate["description"],
@@ -114,3 +118,52 @@ def test_demo_failure_rolls_back_business_and_imports(db, monkeypatch):
     assert db.get(Business, DEMO_BUSINESS_ID) is None
     assert db.scalar(select(func.count()).select_from(ImportBatch)) == 0
     assert db.scalar(select(func.count()).select_from(Sale)) == 0
+
+
+@pytest.mark.integration
+def test_personal_demos_remain_marked_for_distinct_accounts(db):
+    users = [
+        User(email=f"demo-{index}@example.test", full_name="Demo account", password_hash="test")
+        for index in range(2)
+    ]
+    ordinary = Business(name="My cafe", industry="cafe")
+    db.add_all([*users, ordinary])
+    db.flush()
+    first, second = [load_demo(db, user.id) for user in users]
+    assert first.business.id != second.business.id
+    assert first.business.id != DEMO_BUSINESS_ID
+    assert first.business.is_demo is True
+    assert second.business.is_demo is True
+    assert ordinary.is_demo is False
+    repeated = load_demo(db, users[0].id)
+    assert repeated.already_loaded is True
+    assert repeated.business.id == first.business.id
+    assert repeated.business.is_demo is True
+
+
+@pytest.mark.integration
+def test_demo_marker_migration_marks_only_legacy_demo(tmp_path):
+    engine = make_engine("sqlite:///" + (tmp_path / "legacy.db").as_posix())
+    config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+    normal_id = uuid4()
+    try:
+        with engine.begin() as connection:
+            config.attributes["connection"] = connection
+            command.upgrade(config, "0004")
+            connection.execute(
+                text("INSERT INTO businesses (id, name, industry) VALUES (:id, :name, 'cafe')"),
+                [
+                    {"id": DEMO_BUSINESS_ID.hex, "name": "Legacy demo"},
+                    {"id": normal_id.hex, "name": "Real business"},
+                ],
+            )
+            command.upgrade(config, "0005")
+            markers = dict(connection.execute(text("SELECT id, is_demo FROM businesses")).all())
+            assert markers == {DEMO_BUSINESS_ID.hex: 1, normal_id.hex: 0}
+            command.downgrade(config, "0004")
+            assert "is_demo" not in {
+                column["name"] for column in inspect(connection).get_columns("businesses")
+            }
+            assert connection.scalar(text("SELECT count(*) FROM businesses")) == 2
+    finally:
+        engine.dispose()

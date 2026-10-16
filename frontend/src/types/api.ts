@@ -4,6 +4,127 @@
  */
 
 export interface paths {
+    "/api/v1/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register */
+        post: operations["register_api_v1_auth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login */
+        post: operations["login_api_v1_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_api_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout */
+        post: operations["logout_api_v1_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change Password */
+        post: operations["change_password_api_v1_auth_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/businesses/{business_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Members */
+        get: operations["list_members_api_v1_businesses__business_id__members_get"];
+        put?: never;
+        /** Add Member */
+        post: operations["add_member_api_v1_businesses__business_id__members_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/businesses/{business_id}/members/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Member */
+        delete: operations["remove_member_api_v1_businesses__business_id__members__user_id__delete"];
+        options?: never;
+        head?: never;
+        /** Change Role */
+        patch: operations["change_role_api_v1_businesses__business_id__members__user_id__patch"];
+        trace?: never;
+    };
     "/api/v1/businesses": {
         parameters: {
             query?: never;
@@ -158,6 +279,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/comparison": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare Periods */
+        get: operations["compare_periods_api_v1_analytics_comparison_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/forecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Financial Forecast */
+        get: operations["financial_forecast_api_v1_analytics_forecast_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/analysis/run": {
         parameters: {
             query?: never;
@@ -281,6 +436,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AddMemberRequest */
+        AddMemberRequest: {
+            /** Email */
+            email: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "analyst" | "viewer";
+        };
         /** AdvisorFact */
         AdvisorFact: {
             /** Id */
@@ -424,6 +589,12 @@ export interface components {
             /** Date To */
             date_to?: string | null;
         };
+        /** AuthRead */
+        AuthRead: {
+            user: components["schemas"]["UserRead"];
+            /** Memberships */
+            memberships: components["schemas"]["MembershipRead"][];
+        };
         /** Body_confirm_api_v1_imports_confirm_post */
         Body_confirm_api_v1_imports_confirm_post: {
             /**
@@ -503,6 +674,27 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Is Demo */
+            is_demo: boolean;
+        };
+        /** CategoryComparison */
+        CategoryComparison: {
+            /** Category */
+            category: string;
+            /**
+             * Presence
+             * @enum {string}
+             */
+            presence: "both" | "current_only" | "baseline_only";
+            amount: components["schemas"]["MetricComparison"];
+        };
+        /** ChangeRoleRequest */
+        ChangeRoleRequest: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "analyst" | "viewer";
         };
         /** ChatMessage */
         ChatMessage: {
@@ -513,6 +705,17 @@ export interface components {
             role: "user" | "assistant";
             /** Content */
             content: string;
+        };
+        /** ComparisonPoint */
+        ComparisonPoint: {
+            /** Day */
+            day: number;
+            /** Current Date */
+            current_date: string | null;
+            /** Baseline Date */
+            baseline_date: string | null;
+            current: components["schemas"]["Metric"];
+            baseline: components["schemas"]["Metric"];
         };
         /** DashboardSummary */
         DashboardSummary: {
@@ -613,6 +816,103 @@ export interface components {
              * @enum {string}
              */
             record_type: "expense" | "refund";
+        };
+        /** FinancialForecast */
+        FinancialForecast: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /**
+             * Currency
+             * @default KZT
+             * @constant
+             */
+            currency: "KZT";
+            period: components["schemas"]["Period"];
+            training_period: components["schemas"]["Period"];
+            forecast_period: components["schemas"]["Period"];
+            /** Horizon Days */
+            horizon_days: number;
+            /** Training Days */
+            training_days: number;
+            /** Observed Sales Days */
+            observed_sales_days: number;
+            /** Observed Expense Days */
+            observed_expense_days: number;
+            /** Complete Calendar */
+            complete_calendar: boolean;
+            /** Sales Change Percent */
+            sales_change_percent: string;
+            /** Expense Change Percent */
+            expense_change_percent: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "partial" | "insufficient_data";
+            /**
+             * Method
+             * @default weekday_mean_30d
+             * @constant
+             */
+            method: "weekday_mean_30d";
+            /** History */
+            history: components["schemas"]["ForecastPoint"][];
+            /** Points */
+            points: components["schemas"]["ForecastPoint"][];
+            totals: components["schemas"]["ForecastTotals"];
+            baseline_totals: components["schemas"]["ForecastTotals"];
+            backtest: components["schemas"]["ForecastBacktest"];
+            /** Assumptions */
+            assumptions: string[];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** ForecastBacktest */
+        ForecastBacktest: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "insufficient_data";
+            /** Reason */
+            reason?: string | null;
+            training_period?: components["schemas"]["Period"] | null;
+            test_period?: components["schemas"]["Period"] | null;
+            /**
+             * Days
+             * @default 0
+             */
+            days: number;
+            /** Revenue Mae */
+            revenue_mae?: string | null;
+            /** Revenue Wape Percent */
+            revenue_wape_percent?: string | null;
+        };
+        /** ForecastPoint */
+        ForecastPoint: {
+            revenue: components["schemas"]["Metric"];
+            cogs: components["schemas"]["Metric"];
+            gross_profit: components["schemas"]["Metric"];
+            gross_margin_percent: components["schemas"]["Metric"];
+            operating_expenses: components["schemas"]["Metric"];
+            operating_profit: components["schemas"]["Metric"];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+        };
+        /** ForecastTotals */
+        ForecastTotals: {
+            revenue: components["schemas"]["Metric"];
+            cogs: components["schemas"]["Metric"];
+            gross_profit: components["schemas"]["Metric"];
+            gross_margin_percent: components["schemas"]["Metric"];
+            operating_expenses: components["schemas"]["Metric"];
+            operating_profit: components["schemas"]["Metric"];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -827,6 +1127,43 @@ export interface components {
             /** Offset */
             offset: number;
         };
+        /** LoginRequest */
+        LoginRequest: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+        };
+        /** MemberRead */
+        MemberRead: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Email */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "analyst" | "viewer";
+        };
+        /** MembershipRead */
+        MembershipRead: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "analyst" | "viewer";
+        };
         /** Metric */
         Metric: {
             /** Value */
@@ -837,7 +1174,65 @@ export interface components {
              */
             status: "available" | "insufficient_data" | "not_applicable";
             /** Reason */
-            reason?: ("no_sales" | "missing_cost" | "no_expenses" | "zero_revenue") | null;
+            reason?: ("no_sales" | "missing_cost" | "no_expenses" | "zero_revenue" | "insufficient_history" | "incomplete_sales_calendar" | "incomplete_expense_calendar") | null;
+        };
+        /** MetricComparison */
+        MetricComparison: {
+            current: components["schemas"]["Metric"];
+            baseline: components["schemas"]["Metric"];
+            /** Change */
+            change: string | null;
+            /** Change Percent */
+            change_percent: string | null;
+            /** Current Per Day */
+            current_per_day: string | null;
+            /** Baseline Per Day */
+            baseline_per_day: string | null;
+            /** Per Day Change */
+            per_day_change: string | null;
+            /** Per Day Change Percent */
+            per_day_change_percent: string | null;
+            /**
+             * Unit
+             * @default money
+             * @enum {string}
+             */
+            unit: "money" | "percent" | "quantity";
+        };
+        /** NamedComparison */
+        NamedComparison: {
+            current: components["schemas"]["Metric"];
+            baseline: components["schemas"]["Metric"];
+            /** Change */
+            change: string | null;
+            /** Change Percent */
+            change_percent: string | null;
+            /** Current Per Day */
+            current_per_day: string | null;
+            /** Baseline Per Day */
+            baseline_per_day: string | null;
+            /** Per Day Change */
+            per_day_change: string | null;
+            /** Per Day Change Percent */
+            per_day_change_percent: string | null;
+            /**
+             * Unit
+             * @default money
+             * @enum {string}
+             */
+            unit: "money" | "percent" | "quantity";
+            /**
+             * Name
+             * @enum {string}
+             */
+            name: "revenue" | "cogs" | "gross_profit" | "gross_margin_percent" | "operating_expenses" | "operating_profit";
+        };
+        /** PasswordRequest */
+        PasswordRequest: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
         };
         /** Period */
         Period: {
@@ -852,12 +1247,79 @@ export interface components {
              */
             date_to: string;
         };
+        /** PeriodComparison */
+        PeriodComparison: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /**
+             * Currency
+             * @default KZT
+             * @constant
+             */
+            currency: "KZT";
+            current: components["schemas"]["DashboardSummary"];
+            baseline: components["schemas"]["DashboardSummary"];
+            /** Current Days */
+            current_days: number;
+            /** Baseline Days */
+            baseline_days: number;
+            /** Current Sales Days */
+            current_sales_days: number;
+            /** Baseline Sales Days */
+            baseline_sales_days: number;
+            /** Metrics */
+            metrics: components["schemas"]["NamedComparison"][];
+            /** Points */
+            points: components["schemas"]["ComparisonPoint"][];
+            /** Products */
+            products: components["schemas"]["ProductComparison"][];
+            /** Products Total */
+            products_total: number;
+            /** Products Offset */
+            products_offset: number;
+            /** Products Limit */
+            products_limit: number;
+            /** Categories */
+            categories: components["schemas"]["CategoryComparison"][];
+            /** Categories Total */
+            categories_total: number;
+            /** Categories Offset */
+            categories_offset: number;
+            /** Categories Limit */
+            categories_limit: number;
+            /** Warnings */
+            warnings: string[];
+        };
         /** PreviewRow */
         PreviewRow: {
             /** Source Row */
             source_row: number;
             /** Data */
             data: components["schemas"]["SalesRow"] | components["schemas"]["ExpensesRow"] | components["schemas"]["ProductsRow"];
+        };
+        /** ProductComparison */
+        ProductComparison: {
+            /**
+             * Product Id
+             * Format: uuid
+             */
+            product_id: string;
+            /** External Id */
+            external_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Presence
+             * @enum {string}
+             */
+            presence: "both" | "current_only" | "baseline_only";
+            revenue: components["schemas"]["MetricComparison"];
+            gross_profit: components["schemas"]["MetricComparison"];
+            gross_margin_percent: components["schemas"]["MetricComparison"];
+            quantity: components["schemas"]["MetricComparison"];
         };
         /** ProductProfitability */
         ProductProfitability: {
@@ -912,6 +1374,15 @@ export interface components {
             name: string;
             /** Category */
             category?: string | null;
+        };
+        /** RegisterRequest */
+        RegisterRequest: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+            /** Full Name */
+            full_name: string;
         };
         /** RequestValidationDetail */
         RequestValidationDetail: {
@@ -1036,6 +1507,18 @@ export interface components {
             /** Amount */
             amount: string;
         };
+        /** UserRead */
+        UserRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Email */
+            email: string;
+            /** Full Name */
+            full_name: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -1058,6 +1541,678 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    register_api_v1_auth_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    login_api_v1_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    me_api_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    logout_api_v1_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    change_password_api_v1_auth_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_members_api_v1_businesses__business_id__members_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberRead"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_member_api_v1_businesses__business_id__members_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddMemberRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    remove_member_api_v1_businesses__business_id__members__user_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    change_role_api_v1_businesses__business_id__members__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                business_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberRead"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_businesses_api_v1_businesses_get: {
         parameters: {
             query?: {
@@ -1516,6 +2671,118 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductsAnalytics"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_periods_api_v1_analytics_comparison_get: {
+        parameters: {
+            query: {
+                business_id: string;
+                date_from?: string | null;
+                date_to?: string | null;
+                baseline_from?: string | null;
+                baseline_to?: string | null;
+                products_limit?: number;
+                products_offset?: number;
+                categories_limit?: number;
+                categories_offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeriodComparison"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    financial_forecast_api_v1_analytics_forecast_get: {
+        parameters: {
+            query: {
+                business_id: string;
+                horizon_days?: number;
+                complete_calendar?: boolean;
+                sales_change_percent?: number | string;
+                expense_change_percent?: number | string;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancialForecast"];
                 };
             };
             /** @description Bad Request */
