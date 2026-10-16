@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     import_token_ttl_seconds: int = Field(default=900, ge=60, le=3600)
     session_cookie_secure: bool = False
     session_ttl_hours: int = Field(default=168, ge=1, le=720)
+    frontend_dist: Path | None = None
     llm_enabled: bool = False
     llm_provider: Literal["openai", "gemini"] = "openai"
     openai_api_key: SecretStr = SecretStr("")
@@ -45,6 +46,9 @@ class Settings(BaseSettings):
     @classmethod
     def supported_database(cls, value: str) -> str:
         url = make_url(value)
+        if url.drivername in ("postgres", "postgresql"):
+            url = url.set(drivername="postgresql+psycopg")
+            value = url.render_as_string(hide_password=False)
         if url.drivername not in ("sqlite", "sqlite+pysqlite", "postgresql+psycopg"):
             raise ValueError("Use SQLite or the postgresql+psycopg driver")
         if url.get_backend_name() == "sqlite" and url.database not in (None, "", ":memory:"):

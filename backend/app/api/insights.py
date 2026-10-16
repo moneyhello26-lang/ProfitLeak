@@ -12,7 +12,9 @@ from app.schemas.insights import (
     InsightRead,
     InsightsRead,
     InsightType,
+    InsightWorkflowUpdate,
     Severity,
+    WorkflowStatus,
 )
 from app.services import insights
 from app.services.analytics import resolve_period
@@ -39,11 +41,24 @@ def insight_list(
     insight_type: Annotated[InsightType | None, Query(alias="type")] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
+    workflow_status: WorkflowStatus | None = None,
 ):
-    return insights.list_insights(db, business_id, period, severity, insight_type, limit, offset)
+    return insights.list_insights(
+        db, business_id, period, severity, insight_type, limit, offset, workflow_status
+    )
 
 
 @router.get("/insights/{insight_id}", response_model=InsightRead, responses=ERRORS)
 def insight_detail(db: Database, business_id: UUID, insight_id: UUID):
     require_business(db, business_id)
     return insights.insight_detail(db, business_id, insight_id)
+
+
+@router.patch("/insights/{insight_id}/workflow", response_model=InsightRead, responses=ERRORS)
+def update_workflow(
+    db: Database, business_id: UUID, insight_id: UUID, request: InsightWorkflowUpdate
+):
+    require_business(db, business_id, ("owner", "analyst"), lock=True)
+    result = insights.update_workflow(db, business_id, insight_id, request.status, request.note)
+    db.commit()
+    return result

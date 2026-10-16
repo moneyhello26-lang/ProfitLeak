@@ -20,6 +20,7 @@ from app.api.planning import router as planning_router
 from app.api.reports import router as reports_router
 from app.core.config import get_settings
 from app.core.csrf import OriginMiddleware
+from app.core.frontend import mount_frontend
 from app.core.i18n import LanguageMiddleware
 from app.core.upload_limit import UploadLimitMiddleware
 from app.db.session import get_db
@@ -86,3 +87,7 @@ def health(db: Annotated[Session, Depends(get_db)]) -> HealthResponse:
     except SQLAlchemyError as error:
         raise HTTPException(status_code=503, detail="Database unavailable") from error
     return HealthResponse(status="ok", database="ok")
+
+
+# Mount last: all API routes retain their normal validation/authentication.
+mount_frontend(app, get_settings().frontend_dist)

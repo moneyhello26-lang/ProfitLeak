@@ -5,7 +5,7 @@ import hmac
 import secrets
 from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
-from threading import Lock
+from threading import Lock, Semaphore
 from time import monotonic
 from uuid import UUID
 
@@ -25,19 +25,23 @@ SCRYPT_R = 8
 SCRYPT_P = 1
 _attempts: OrderedDict[str, tuple[int, float]] = OrderedDict()
 _attempt_lock = Lock()
+_password_slot = Semaphore(1)
 
 
 def hash_password(password: str, salt: str | None = None) -> str:
     salt = salt or secrets.token_hex(16)
-    digest = hashlib.scrypt(
-        password.encode("utf-8"),
-        salt=bytes.fromhex(salt),
-        n=SCRYPT_N,
-        r=SCRYPT_R,
-        p=SCRYPT_P,
-        maxmem=256 * 1024 * 1024,
-        dklen=32,
-    ).hex()
+    # Each scrypt call uses ~128 MiB; serialize hashing to bound peak memory
+    # on the single-process free host without reducing password protection.
+    with _password_slot:
+        digest = hashlib.scrypt(
+            password.encode("utf-8"),
+            salt=bytes.fromhex(salt),
+            n=SCRYPT_N,
+            r=SCRYPT_R,
+            p=SCRYPT_P,
+            maxmem=256 * 1024 * 1024,
+            dklen=32,
+        ).hex()
     return f"scrypt${salt}${digest}"
 
 

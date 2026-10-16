@@ -1,0 +1,23 @@
+[Unit]
+Description=ProfitLeak application
+After=network.target
+
+[Service]
+Type=simple
+User=profitleak
+Group=profitleak
+WorkingDirectory=/opt/profitleak
+EnvironmentFile=/etc/profitleak.env
+ExecStartPre=/opt/profitleak/backend/.venv/bin/python -m alembic -c backend/alembic.ini upgrade head
+ExecStart=/opt/profitleak/backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/profitleak
+
+[Install]
+WantedBy=multi-user.target

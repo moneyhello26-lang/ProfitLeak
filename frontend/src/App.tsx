@@ -377,10 +377,47 @@ function insightTitle(item: Insight) {
 function EvidenceValue({ value, unit }: { value: string | null; unit: 'KZT' | 'percent' }) {
   return <>{value == null ? '—' : unit === 'percent' ? `${decimal(value)}%` : money(value)}</>
 }
+const workflowLabels = localizedRecord({ new: 'Новая', in_progress: 'В работе', reviewed: 'Проверена', dismissed: 'Отклонена' })
+function InsightWorkflow({ item }: { item: Insight }) {
+  const { refresh } = useWorkspace()
+  const canEdit = useCanEdit(item.business_id)
+  const [status, setStatus] = useState(item.workflow_status)
+  const [note, setNote] = useState(item.workflow_note)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const pending = useRef<AbortController | null>(null)
+  useEffect(() => () => pending.current?.abort(), [])
+  async function save(event: FormEvent) {
+    event.preventDefault()
+    if (busy || !canEdit) return
+    const controller = new AbortController()
+    pending.current = controller
+    setBusy(true); setError('')
+    try {
+      await api<Insight>(`/insights/${item.id}/workflow?business_id=${item.business_id}`, {
+        method: 'PATCH', signal: controller.signal,
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, note }),
+      })
+      if (!controller.signal.aborted) refresh()
+    } catch (error) {
+      if (!controller.signal.aborted) setError((error as Error).message)
+    } finally { if (!controller.signal.aborted) setBusy(false) }
+  }
+  return <section className="panel workflow-panel"><div className="panel-heading"><div><h2>{tr('Контроль рекомендации')}</h2><p>{tr('Отмечайте ход проверки и сохраняйте выводы команды.')}</p></div></div>
+    <form onSubmit={event => void save(event)} className="workflow-form">
+      <label>{tr('Статус проверки')}<select value={status} onChange={event => setStatus(event.target.value as Insight['workflow_status'])} disabled={!canEdit || busy}>{Object.entries(workflowLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label>{tr('Заметка команды')}<textarea value={note} onChange={event => setNote(event.target.value)} maxLength={2000} rows={3} disabled={!canEdit || busy} /></label>
+      <p className="form-hint">{tr('Статус проверки не подтверждает экономию. После обновления данных проверьте выводы повторно.')}</p>
+      {item.workflow_updated_at && <small>{tr('Обновлено:')} {dateTimeLabel(item.workflow_updated_at, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' })}</small>}
+      {canEdit && <Button className="primary" disabled={busy || (status === item.workflow_status && note === item.workflow_note)}>{busy ? tr('Сохраняем…') : tr('Сохранить проверку')}</Button>}
+      {error && <p className="field-error" role="alert">{error}</p>}
+    </form></section>
+}
 function InsightCard({ item }: { item: Insight }) {
   return <article className="panel insight-card">
     <div className="insight-card-top"><span className={`risk-badge ${item.severity}`}>{tr("Приоритет:")} {severityLabels[item.severity]}</span><span className="insight-kind">{insightLabels[item.type]}</span></div>
     <h2><Link to={`/insights/${item.id}`}>{insightTitle(item)}</Link></h2>
+    <span className={`workflow-badge ${item.workflow_status}`}>{workflowLabels[item.workflow_status]}</span>
     <p>{item.evidence.explanation}</p>
     <div className="insight-values"><div><span>{tr("Текущее значение")}</span><strong><EvidenceValue value={item.evidence.current_value} unit={item.evidence.value_unit} /></strong></div>{item.evidence.baseline_value != null && <div><span>{tr("Базовое значение")}</span><strong><EvidenceValue value={item.evidence.baseline_value} unit={item.evidence.value_unit} /></strong></div>}</div>
     {item.evidence.deviation_percent != null && <span className="deviation">{tr("Изменение:")} {decimal(item.evidence.deviation_percent)}%</span>}
@@ -425,20 +462,22 @@ function DetectorPage() {
   const { business, period, setEffectivePeriod, refresh } = useWorkspace()
   const [severity, setSeverity] = useState<Severity | ''>('')
   const [kind, setKind] = useState<InsightType | ''>('')
+  const [workflow, setWorkflow] = useState<Insight['workflow_status'] | ''>('')
   const [page, setPage] = useState({ scope: '', offset: 0 })
-  const scope = `${query(business!.id, period)}&severity=${severity}&kind=${kind}`
+  const scope = `${query(business!.id, period)}&severity=${severity}&kind=${kind}&workflow=${workflow}`
   const offset = page.scope === scope ? page.offset : 0
   const filters = new URLSearchParams()
   if (severity) filters.set('severity', severity)
   if (kind) filters.set('type', kind)
+  if (workflow) filters.set('workflow_status', workflow)
   const result = useRemote<Insights>(`/insights?${query(business!.id, period)}&${filters}&limit=9&offset=${offset}`)
   useEffect(() => { if (!period && result.data) setEffectivePeriod(result.data.period) }, [period, result.data, setEffectivePeriod])
   return <><PageHeading eyebrow={tr("ОБЪЯСНИМЫЙ АНАЛИЗ")} title={tr("Детектор проблем")} description={tr("Проверьте рост расходов, маржу, продажи и возможные повторные платежи.")} dates />
-    <div className="detector-toolbar"><div className="insight-filters"><label>{tr("Приоритет")}<select value={severity} onChange={e => setSeverity(e.target.value as Severity | '')}><option value="">{tr("Все приоритеты")}</option>{Object.entries(severityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>{tr("Тип сигнала")}<select value={kind} onChange={e => setKind(e.target.value as InsightType | '')}><option value="">{tr("Все типы")}</option>{Object.entries(insightLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div><RunAnalysisButton onDone={() => setPage({ scope, offset: 0 })} /></div>
+    <div className="detector-toolbar"><div className="insight-filters"><label>{tr("Приоритет")}<select value={severity} onChange={e => setSeverity(e.target.value as Severity | '')}><option value="">{tr("Все приоритеты")}</option>{Object.entries(severityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>{tr("Тип сигнала")}<select value={kind} onChange={e => setKind(e.target.value as InsightType | '')}><option value="">{tr("Все типы")}</option>{Object.entries(insightLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>{tr("Статус проверки")}<select value={workflow} onChange={e => setWorkflow(e.target.value as Insight['workflow_status'] | '')}><option value="">{tr("Все статусы")}</option>{Object.entries(workflowLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div><RunAnalysisButton onDone={() => setPage({ scope, offset: 0 })} /></div>
     {result.loading ? <Loading /> : result.error ? <ErrorBox message={result.error} retry={refresh} /> : result.data && <>
       {!result.data.analysis ? <section className="panel"><Empty title={tr("Анализ ещё не запускался")} text={tr("Запустите анализ для выбранного периода. Расчёты и рекомендации работают без подключения LLM.")} /></section> : <>
         <AnalysisNotice analysis={result.data.analysis} />
-        {result.data.items.length ? <div className="insight-grid">{result.data.items.map(item => <InsightCard key={item.id} item={item} />)}</div> : <section className="panel"><Empty title={severity || kind ? tr("Сигналов с такими фильтрами нет") : tr("Сигналов по правилам не найдено")} text={tr("Ниже показано, какие проверки удалось выполнить и где данных не хватило.")} /></section>}
+        {result.data.items.length ? <div className="insight-grid">{result.data.items.map(item => <InsightCard key={item.id} item={item} />)}</div> : <section className="panel"><Empty title={severity || kind || workflow ? tr("Сигналов с такими фильтрами нет") : tr("Сигналов по правилам не найдено")} text={tr("Ниже показано, какие проверки удалось выполнить и где данных не хватило.")} /></section>}
         {result.data.total > 9 && <div className="pagination"><span>{offset + 1}–{offset + result.data.items.length} {tr("из")} {result.data.total} {tr("сигналов")}</span><div><Button className="icon-button" disabled={!offset} aria-label={tr("Предыдущие сигналы")} onClick={() => setPage({ scope, offset: Math.max(0, offset - 9) })}><ChevronLeft size={17} /></Button><Button className="icon-button" disabled={offset + 9 >= result.data.total} aria-label={tr("Следующие сигналы")} onClick={() => setPage({ scope, offset: offset + 9 })}><ChevronRight size={17} /></Button></div></div>}
         <section className="panel rule-panel"><div className="panel-heading"><div><h2>{tr("Достаточность данных")}</h2><p>{tr("Отсутствие сигнала не подтверждает отсутствие проблем.")}</p></div><CheckCircle2 size={20} className="muted" /></div><div className="rule-list">{result.data.analysis.checks.map(check => <div key={check.type}><div><strong>{insightLabels[check.type]}</strong><span className={`rule-status ${check.status}`}>{check.status === 'evaluated' ? tr("Проверено · сигналов: {p0}", { p0: check.signals }) : tr("Недостаточно данных")}</span></div><p>{check.reason}</p>{check.skipped_entities > 0 && <small>{tr("Пропущено объектов или записей:")} {check.skipped_entities}</small>}</div>)}</div></section>
       </>}
@@ -465,6 +504,7 @@ function InsightPage() {
       <div><dt>{tr("Достоверность сопоставления")}</dt><dd>{severityLabels[item.confidence]} {tr("уровень")}</dd></div>
     </dl><div className="formula"><strong>{tr("Правило расчёта")}</strong><p>{item.evidence.formula}</p></div><p className="evidence-caveat">{item.evidence.caveat}</p></div></section>
     <aside className="panel recommendation-panel"><span className="guide-icon"><Sparkles size={23} /></span><h2>{tr("Что проверить")}</h2><p>{item.recommendation}</p><span className="recommendation-source">{tr("Шаблонная рекомендация · работает без LLM")}</span><div className="savings-box"><small>{tr("Сценарная оценка за текущий период")}</small><strong>{item.potential_savings_kzt != null ? money(item.potential_savings_kzt) : tr("Не оценена")}</strong><p>{item.evidence.savings_assumption || tr("Данных для обоснованной оценки экономии недостаточно.")}</p><span>{tr("Оценка требует проверки и не гарантирует экономию.")}</span></div></aside></div>
+    <InsightWorkflow key={`${item.id}:${item.workflow_updated_at}`} item={item} />
     <section className="panel sources-panel"><div className="panel-heading"><div><h2>{tr("Исходные записи")}</h2><p>{tr("Показано")} {item.evidence.source_rows.length} {tr("из")} {item.evidence.source_rows_total} {tr("строк, участвующих в расчёте. Для сравнения показаны примеры из обоих периодов.")}</p></div><FileSpreadsheet size={20} className="muted" /></div><div className="scroll-table"><table><thead><tr><th>{tr("Файл")}</th><th>{tr("Строка")}</th><th>{tr("Дата")}</th><th>{tr("Операция")}</th><th className="numeric">{tr("Сумма")}</th></tr></thead><tbody>{item.evidence.source_rows.map(row => <tr key={row.record_id}><td>{row.filename}</td><td>{row.source_row}</td><td>{dateLabel(row.date, true)}</td><td>{({ sale: tr("Продажа"), return: tr("Возврат продажи"), expense: tr("Расход"), refund: tr("Возврат расхода") } as Record<string, string>)[row.record_type] || row.record_type}</td><td className="numeric">{money(row.amount)}</td></tr>)}</tbody></table></div><div className="panel-footnote">{tr("Строки возвратов показаны положительной суммой; в расчётах они вычитаются.")}</div></section>
     <InsightAdvisor item={item} />
   </>}</>

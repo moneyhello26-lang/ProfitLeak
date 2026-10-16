@@ -29,3 +29,12 @@
 @media(max-width:1020px){.comparison-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.forecast-details{grid-template-columns:1fr}.planning-chart .panel-heading{flex-wrap:wrap}}
 @media(max-width:760px){.planning-controls{padding:20px}.comparison-form,.forecast-form{gap:12px}.comparison-form>label,.forecast-form>label{flex:1;min-width:135px}.planning-controls input:not([type=checkbox]),.planning-controls select{width:100%}.comparison-periods,.forecast-period-strip{padding:20px;flex-direction:column;align-items:flex-start;gap:18px}.comparison-periods>svg{display:none}.comparison-periods>div{width:100%}.comparison-kpis{gap:12px}.comparison-kpi{padding:18px;gap:10px}.comparison-kpi>strong{font-size:19px}.comparison-kpi>span:first-child{font-size:10px}.planning-toolbar{align-items:flex-start;flex-direction:column;gap:12px}.planning-chart-options{width:100%;justify-content:space-between}.planning-chart-options select{max-width:190px}.planning-chart-canvas{height:280px;padding-right:12px}.forecast-detail-body{padding:20px}.comparison-periods~.panel>.panel-heading{flex-wrap:wrap}.compact-select{width:100%}.change-value{font-size:11px}.forecast-form .button{flex:1;justify-content:center}.forecast-period-strip>svg{display:none}}
 @media(max-width:420px){.comparison-kpis{grid-template-columns:1fr}.comparison-kpi>strong{font-size:24px}.planning-chart-options{align-items:stretch;flex-direction:column}.planning-chart-options select{max-width:none}.planning-chart .segmented{align-self:flex-start}}
+.workflow-panel { margin-top: 24px; }
+.workflow-form { display: grid; gap: 14px; padding: 0 24px 24px; }
+.workflow-form label { display: grid; gap: 8px; font-weight: 600; }
+.workflow-form textarea { width: 100%; resize: vertical; min-height: 90px; font: inherit; padding: 12px; border: 1px solid #d8e3e1; border-radius: 10px; }
+.workflow-form .button { justify-self: start; }
+.workflow-badge { display: inline-block; width: fit-content; padding: 4px 10px; border-radius: 20px; font-size: 12px; background: #edf2f5; color: #46576a; }
+.workflow-badge.in_progress { background: #fff1d6; color: #805400; }
+.workflow-badge.reviewed { background: #def5e9; color: #166342; }
+.workflow-badge.dismissed { background: #f1edf5; color: #65546d; }

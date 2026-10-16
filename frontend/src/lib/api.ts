@@ -96,15 +96,9 @@ export const metricReason: Record<string, string> = localizedRecord({
 export const categoryLabel: Record<string, string> = localizedRecord({
   packaging: 'Упаковка', wages: 'Зарплата', utilities: 'Коммунальные услуги', rent: 'Аренда',
   Packaging: 'Упаковка', Wages: 'Зарплата', Utilities: 'Коммунальные услуги', Rent: 'Аренда',
-<<<<<<< Updated upstream
-})
-export const productLabel: Record<string, string> = localizedRecord({ Coffee: 'Кофе', Tea: 'Чай', Sandwich: 'Сэндвич' })
-export const kindLabel: Record<ImportKind, string> = localizedRecord({ sales: 'Продажи', expenses: 'Расходы', products: 'Товары' })
-=======
   Salary: 'Зарплата', Software: 'Программы и связь', BankFees: 'Банковские комиссии',
   Delivery: 'Доставка', Marketing: 'Реклама', Cleaning: 'Уборка', Spoilage: 'Списания',
   Repairs: 'Ремонт и обслуживание',
-}
-export const productLabel: Record<string, string> = { Coffee: 'Кофе', Tea: 'Чай', Sandwich: 'Сэндвич' }
-export const kindLabel: Record<ImportKind, string> = { sales: 'Продажи', expenses: 'Расходы', products: 'Товары' }
->>>>>>> Stashed changes
+})
+export const productLabel: Record<string, string> = localizedRecord({ Coffee: 'Кофе', Tea: 'Чай', Sandwich: 'Сэндвич' })
+export const kindLabel: Record<ImportKind, string> = localizedRecord({ sales: 'Продажи', expenses: 'Расходы', products: 'Товары' })

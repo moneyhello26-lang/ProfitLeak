@@ -24,6 +24,9 @@ from app.services.import_tokens import issue_token, verify_token
 router = APIRouter(prefix="/api/v1", tags=["Data import"])
 ERRORS = {status: {"model": ErrorResponse} for status in (400, 404, 409, 413, 415)}
 ERRORS[422] = {"model": ErrorResponse | RequestValidationResponse}
+# Keep exported descriptions stable across Python HTTPStatus wording changes.
+ERRORS[413]["description"] = "Content Too Large"
+ERRORS[422]["description"] = "Unprocessable Content"
 
 
 def read_upload(file: UploadFile, kind: ImportKind):

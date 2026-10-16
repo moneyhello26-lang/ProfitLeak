@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: profitleak
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: python -m pip install './backend[postgres]' && npm --prefix frontend ci && npm --prefix frontend run build
+    startCommand: python backend/scripts/start_hosted.py
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.14.0
+      - key: NODE_VERSION
+        value: 24.15.0
+      - key: DATABASE_URL
+        sync: false
+      - key: IMPORT_SIGNING_KEY
+        generateValue: true
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: LLM_ENABLED
+        value: "false"
+      - key: FORWARDED_ALLOW_IPS
+        value: "*"
