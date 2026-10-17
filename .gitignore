@@ -22,3 +22,5 @@ htmlcov/
 *.db-shm
 *.dump
 /output/ProfitLeak_handoff_*.zip
+/output/ProfitLeak_local_*.zip
+/backups/

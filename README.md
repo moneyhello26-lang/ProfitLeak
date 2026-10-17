@@ -1,9 +1,8 @@
 # ProfitLeak AI
 
-Публикация и передача: [инструкция сервера](docs/DEPLOYMENT.md),
-[бесплатное размещение](docs/FREE_DEPLOYMENT.md),
-[план выпуска 17 октября](docs/RELEASE_PLAN_2026-10-17.md),
-[текущее состояние для продолжения](HANDOFF.md).
+Готовый проект без облачных сервисов: [локальный запуск и передача](docs/LOCAL_RELEASE.md),
+[текущее состояние и проверки](HANDOFF.md). Docker, Render, Neon и облачные API
+для этого варианта не нужны. Данные хранятся в SQLite на компьютере.
 
 Локальный сервис финансовой аналитики для малого бизнеса: React + TypeScript,
 FastAPI и SQLite. Docker и отдельный сервер базы данных для запуска не нужны.
@@ -23,19 +22,21 @@ FastAPI и SQLite. Docker и отдельный сервер базы данны
 На этом компьютере зависимости подготовлены. Из корня проекта в PowerShell:
 
 ```powershell
-.\start.ps1
+.\start-local.ps1
 ```
 
 Если PowerShell запрещает запуск локального скрипта:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\start.ps1
+powershell -ExecutionPolicy Bypass -File .\start-local.ps1
 ```
 
-Скрипт применяет миграции, запускает backend и frontend и проверяет их готовность.
-Откройте **http://127.0.0.1:5173**. API: **http://127.0.0.1:8000/docs**.
-Ctrl+C останавливает оба сервера. Скрипт использует SQLite независимо от старого
-DATABASE_URL в окружении; файл базы — `backend/profitleak.db`.
+Скрипт применяет миграции и запускает API с готовым интерфейсом одним процессом.
+Откройте **http://127.0.0.1:5173**. API: **http://127.0.0.1:5173/docs**.
+Ctrl+C останавливает приложение. SQLite выбирается независимо от старого
+DATABASE_URL; файл базы — `backend/profitleak.db`. Внешний LLM и API-ключи
+отключаются для этого процесса. Если отсутствует `frontend/dist`, сначала
+выполните `npm.cmd --prefix frontend run build`. В архиве выпуска сборка включена.
 
 При первом открытии зарегистрируйте свой аккаунт. Первый зарегистрированный
 пользователь становится владельцем ранее созданных бизнесов; их данные сохраняются.
@@ -50,7 +51,8 @@ DATABASE_URL в окружении; файл базы — `backend/profitleak.db
 python -m venv backend/.venv
 backend/.venv/Scripts/python.exe -m pip install -e './backend[dev]'
 npm.cmd --prefix frontend ci
-.\start.ps1
+npm.cmd --prefix frontend run build
+.\start-local.ps1
 ```
 
 `.env` необязателен: SQLite настроена по умолчанию. Для изменения параметров:
@@ -62,7 +64,7 @@ Copy-Item .env.example .env
 Относительный путь SQLite разрешается относительно корня проекта, поэтому база
 не меняется при запуске из другой рабочей папки. Файл БД и `.env` исключены из Git.
 
-Запуск вручную, в двух терминалах:
+Запуск для разработки вручную, в двух терминалах (или прежний `start.ps1`):
 
 ```powershell
 backend/.venv/Scripts/python.exe -m alembic -c backend/alembic.ini upgrade head

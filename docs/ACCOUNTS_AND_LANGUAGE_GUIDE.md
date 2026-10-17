@@ -5,7 +5,7 @@
 Запустите из корня проекта в PowerShell:
 
 ```powershell
-.\start.ps1
+.\start-local.ps1
 ```
 
 Скрипт применяет миграции SQLite и запускает сайт на `http://127.0.0.1:5173`.

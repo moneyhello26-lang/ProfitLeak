@@ -12,7 +12,7 @@ This file maps those requirements to implementation; it does not replace the sou
 | FR-05 Expense anomalies | Rule based category comparison with explicit minimum samples |
 | FR-06 Product profitability | Revenue, COGS, profit/margin, pagination and product rules |
 | FR-07 Evidence cards | Detector, priority/type filters, detail route, periods, formulas and source rows |
-| FR-08 Recommendations | Russian templates plus Gemini/OpenAI explanations with verified fact substitution, provider-specific consent, bounded history, cache and quota pause |
+| FR-08 Recommendations | Russian/Kazakh local templates plus optional Gemini/OpenAI explanations with verified fact substitution, provider-specific consent, bounded history, cache and quota pause |
 | FR-09 Dates | Inclusive 1–366 day filters on analytics and analysis |
 | FR-10 Demo | Repeatable 90 day Taraz cafe; three independently checked detector scenarios |
 | FR-11 Advisor chat | Business/date scoped chat, bounded transient history, source labels and backend facts; offline fallback |
@@ -82,7 +82,7 @@ summed or presented as proven losses or guaranteed savings.
 
 ## Acceptance demonstration
 
-1. Run `start.ps1`: it applies SQLite migrations and starts FastAPI and Vite.
+1. Run `start-local.ps1`: it applies SQLite migrations and starts FastAPI with the built frontend on loopback. This entry point disables external LLM calls. The previous `start.ps1` remains a development option with separate FastAPI/Vite processes.
 2. Open the Taraz demo twice; check that row counts and KPI values are unchanged.
 3. Open **Детектор проблем** and run analysis for the default 90 days.
 4. Check packaging: 30,000 → 46,500 KZT, +55%, scenario 16,500 KZT.
