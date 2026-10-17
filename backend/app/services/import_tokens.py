@@ -6,7 +6,6 @@ import time
 from uuid import UUID
 
 from app.core.config import get_settings
-from app.schemas.imports import ImportKind
 from app.services.import_parser import FileProblem
 
 
@@ -15,7 +14,7 @@ def signature(payload: str) -> str:
     return hmac.new(key, payload.encode(), hashlib.sha256).hexdigest()
 
 
-def issue_token(business_id: UUID, kind: ImportKind, file_sha256: str) -> tuple[str, int]:
+def issue_token(business_id: UUID, kind: str, file_sha256: str) -> tuple[str, int]:
     expires = int(time.time()) + get_settings().import_token_ttl_seconds
     content = json.dumps(
         {"business": str(business_id), "kind": kind, "sha256": file_sha256, "expires": expires},
@@ -25,7 +24,7 @@ def issue_token(business_id: UUID, kind: ImportKind, file_sha256: str) -> tuple[
     return payload + "." + signature(payload), expires
 
 
-def verify_token(token: str, business_id: UUID, kind: ImportKind, file_sha256: str):
+def verify_token(token: str, business_id: UUID, kind: str, file_sha256: str):
     try:
         payload, supplied = token.split(".")
         if not hmac.compare_digest(signature(payload), supplied):

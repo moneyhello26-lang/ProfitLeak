@@ -125,6 +125,143 @@ export interface paths {
         patch: operations["change_role_api_v1_businesses__business_id__members__user_id__patch"];
         trace?: never;
     };
+    "/api/v1/cash/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Account */
+        post: operations["create_account_api_v1_cash_accounts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Entries */
+        get: operations["entries_api_v1_cash_entries_get"];
+        put?: never;
+        /** Create Entry */
+        post: operations["create_entry_api_v1_cash_entries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Report */
+        get: operations["report_api_v1_cash_report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Payment */
+        post: operations["create_payment_api_v1_cash_payments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash/payments/{payment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Payment Action */
+        patch: operations["payment_action_api_v1_cash_payments__payment_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/cash/budgets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save Budget */
+        post: operations["save_budget_api_v1_cash_budgets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash/statements/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview Statement */
+        post: operations["preview_statement_api_v1_cash_statements_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash/statements/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Statement */
+        post: operations["confirm_statement_api_v1_cash_statements_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/businesses": {
         parameters: {
             query?: never;
@@ -453,6 +590,63 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountBalance */
+        AccountBalance: {
+            /** Name */
+            name: string;
+            /**
+             * Opening Date
+             * Format: date
+             */
+            opening_date: string;
+            /**
+             * Opening Balance
+             * @default 0
+             */
+            opening_balance: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Balance */
+            balance: string;
+        };
+        /** AccountCreate */
+        AccountCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Opening Date
+             * Format: date
+             */
+            opening_date: string;
+            /**
+             * Opening Balance
+             * @default 0
+             */
+            opening_balance: number | string;
+        };
+        /** AccountRead */
+        AccountRead: {
+            /** Name */
+            name: string;
+            /**
+             * Opening Date
+             * Format: date
+             */
+            opening_date: string;
+            /**
+             * Opening Balance
+             * @default 0
+             */
+            opening_balance: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
         /** AddMemberRequest */
         AddMemberRequest: {
             /** Email */
@@ -629,6 +823,23 @@ export interface components {
             /** Preview Token */
             preview_token: string;
         };
+        /** Body_confirm_statement_api_v1_cash_statements_confirm_post */
+        Body_confirm_statement_api_v1_cash_statements_confirm_post: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** File */
+            file: string;
+            /** Preview Token */
+            preview_token: string;
+        };
         /** Body_preview_import_api_v1_imports_preview_post */
         Body_preview_import_api_v1_imports_preview_post: {
             /**
@@ -643,6 +854,71 @@ export interface components {
             kind: "sales" | "expenses" | "products";
             /** File */
             file: string;
+        };
+        /** Body_preview_statement_api_v1_cash_statements_preview_post */
+        Body_preview_statement_api_v1_cash_statements_preview_post: {
+            /**
+             * Business Id
+             * Format: uuid
+             */
+            business_id: string;
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** File */
+            file: string;
+        };
+        /** BudgetActual */
+        BudgetActual: {
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Category */
+            category: string;
+            /** Amount */
+            amount: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Actual */
+            actual: string;
+            /** Remaining */
+            remaining: string;
+        };
+        /** BudgetCreate */
+        BudgetCreate: {
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Category */
+            category: string;
+            /** Amount */
+            amount: number | string;
+        };
+        /** BudgetRead */
+        BudgetRead: {
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Category */
+            category: string;
+            /** Amount */
+            amount: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
         };
         /** BusinessCreate */
         BusinessCreate: {
@@ -694,6 +970,41 @@ export interface components {
             /** Is Demo */
             is_demo: boolean;
         };
+        /** CashReport */
+        CashReport: {
+            /**
+             * Date From
+             * Format: date
+             */
+            date_from: string;
+            /**
+             * Date To
+             * Format: date
+             */
+            date_to: string;
+            /** Accounts */
+            accounts: components["schemas"]["AccountBalance"][];
+            /** Opening Balance */
+            opening_balance: string;
+            /** Introduced Balance */
+            introduced_balance: string;
+            /** Closing Balance */
+            closing_balance: string;
+            /** Income */
+            income: string;
+            /** Expense */
+            expense: string;
+            /** Net Flow */
+            net_flow: string;
+            /** Categories */
+            categories: components["schemas"]["CategoryFlow"][];
+            /** Projection */
+            projection: components["schemas"]["ProjectionPoint"][];
+            /** Payments */
+            payments: components["schemas"]["PaymentRead"][];
+            /** Budgets */
+            budgets: components["schemas"]["BudgetActual"][];
+        };
         /** CategoryComparison */
         CategoryComparison: {
             /** Category */
@@ -704,6 +1015,13 @@ export interface components {
              */
             presence: "both" | "current_only" | "baseline_only";
             amount: components["schemas"]["MetricComparison"];
+        };
+        /** CategoryFlow */
+        CategoryFlow: {
+            /** Category */
+            category: string;
+            /** Amount */
+            amount: string;
         };
         /** ChangeRoleRequest */
         ChangeRoleRequest: {
@@ -775,6 +1093,73 @@ export interface components {
             product_count: number;
             /** Already Loaded */
             already_loaded: boolean;
+        };
+        /** EntryCreate */
+        EntryCreate: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Destination Id */
+            destination_id?: string | null;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "income" | "expense" | "transfer";
+            /** Amount */
+            amount: number | string;
+            /** Category */
+            category: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Reference */
+            reference?: string | null;
+        };
+        /** EntryRead */
+        EntryRead: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Destination Id */
+            destination_id?: string | null;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "income" | "expense" | "transfer";
+            /** Amount */
+            amount: string;
+            /** Category */
+            category: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Reference */
+            reference?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
         };
         /** ErrorDetail */
         ErrorDetail: {
@@ -1274,6 +1659,92 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** PaymentAction */
+        PaymentAction: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "pay" | "cancel";
+            /** Paid Date */
+            paid_date?: string | null;
+        };
+        /** PaymentCreate */
+        PaymentCreate: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "income" | "expense";
+            /** Amount */
+            amount: number | string;
+            /** Category */
+            category: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Recurrence
+             * @default none
+             * @enum {string}
+             */
+            recurrence: "none" | "weekly" | "monthly";
+        };
+        /** PaymentRead */
+        PaymentRead: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "income" | "expense";
+            /** Amount */
+            amount: string;
+            /** Category */
+            category: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Recurrence
+             * @default none
+             * @enum {string}
+             */
+            recurrence: "none" | "weekly" | "monthly";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "paid" | "cancelled";
+        };
         /** Period */
         Period: {
             /**
@@ -1415,6 +1886,18 @@ export interface components {
             /** Category */
             category?: string | null;
         };
+        /** ProjectionPoint */
+        ProjectionPoint: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Balance */
+            balance: string;
+            /** Gap Accounts */
+            gap_accounts: string[];
+        };
         /** RegisterRequest */
         RegisterRequest: {
             /** Email */
@@ -1546,6 +2029,63 @@ export interface components {
             record_type: string;
             /** Amount */
             amount: string;
+        };
+        /** StatementConfirmed */
+        StatementConfirmed: {
+            /** Imported */
+            imported: number;
+        };
+        /** StatementError */
+        StatementError: {
+            /** Row */
+            row: number;
+            /** Field */
+            field: string;
+            /** Message */
+            message: string;
+        };
+        /** StatementPreview */
+        StatementPreview: {
+            /** Row Count */
+            row_count: number;
+            /** Preview */
+            preview: components["schemas"]["StatementPreviewRow"][];
+            /** Errors */
+            errors: components["schemas"]["StatementError"][];
+            /** Can Confirm */
+            can_confirm: boolean;
+            /** Preview Token */
+            preview_token: string | null;
+        };
+        /** StatementPreviewRow */
+        StatementPreviewRow: {
+            /** Source Row */
+            source_row: number;
+            data: components["schemas"]["StatementRow"];
+        };
+        /** StatementRow */
+        StatementRow: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "income" | "expense";
+            /** Amount */
+            amount: string;
+            /** Category */
+            category: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Reference */
+            reference: string;
         };
         /** UserRead */
         UserRead: {
@@ -2249,6 +2789,317 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_account_api_v1_cash_accounts_post: {
+        parameters: {
+            query: {
+                business_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    entries_api_v1_cash_entries_get: {
+        parameters: {
+            query: {
+                business_id: string;
+                date_from: string;
+                date_to: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_entry_api_v1_cash_entries_post: {
+        parameters: {
+            query: {
+                business_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_api_v1_cash_report_get: {
+        parameters: {
+            query: {
+                business_id: string;
+                date_from: string;
+                date_to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_payment_api_v1_cash_payments_post: {
+        parameters: {
+            query: {
+                business_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    payment_action_api_v1_cash_payments__payment_id__patch: {
+        parameters: {
+            query: {
+                business_id: string;
+            };
+            header?: never;
+            path: {
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_budget_api_v1_cash_budgets_post: {
+        parameters: {
+            query: {
+                business_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_statement_api_v1_cash_statements_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_preview_statement_api_v1_cash_statements_preview_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatementPreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_statement_api_v1_cash_statements_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_confirm_statement_api_v1_cash_statements_confirm_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatementConfirmed"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

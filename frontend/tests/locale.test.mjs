@@ -5,6 +5,7 @@ import ts from 'typescript'
 import { getLocale, localizedRecord, setLocale, subscribeLocale, tr } from '../src/locale.ts'
 import { kk } from '../src/translations.ts'
 import { authKk } from '../src/auth.translations.ts'
+import { cashKk } from '../src/cash.translations.ts'
 import { api, categoryLabel, dateLabel, kindLabel, money, productLabel } from '../src/lib/api.ts'
 
 test('language changes update enumerated labels without translating business data', () => {
@@ -46,12 +47,12 @@ test('locale subscriptions and persistence only notify on an actual change', () 
 
 test('all existing application UI copy has a Kazakh translation', () => {
   const missing = new Set()
-  for (const filename of ['App.tsx', 'PlanningPages.tsx', 'Auth.tsx', 'lib/api.ts']) {
+  for (const filename of ['App.tsx', 'PlanningPages.tsx', 'Auth.tsx', 'CashPage.tsx', 'lib/api.ts']) {
     const source = readFileSync(new URL(`../src/${filename}`, import.meta.url), 'utf8')
     const tree = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
     function visit(node) {
       // The Russian year suffix below is a formatter token removed from dates, not UI copy.
-      if (ts.isStringLiteral(node) && node.text !== ' г.' && /[А-Яа-яЁё]/.test(node.text) && !(node.text in kk) && !(node.text in authKk)) missing.add(node.text)
+      if (ts.isStringLiteral(node) && node.text !== ' г.' && /[А-Яа-яЁё]/.test(node.text) && !(node.text in kk) && !(node.text in authKk) && !(node.text in cashKk)) missing.add(node.text)
       if (ts.isJsxText(node) && /[А-Яа-яЁё]/.test(node.text)) missing.add(`Untranslated JSX: ${node.text}`)
       ts.forEachChild(node, visit)
     }

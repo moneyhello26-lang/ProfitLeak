@@ -72,7 +72,7 @@ class ParsedFile:
         return hashlib.sha256("\n".join(sorted(rows)).encode("utf-8")).hexdigest()
 
 
-def parse_file(filename: str, data: bytes, kind: ImportKind) -> ParsedFile:
+def parse_file(filename: str, data: bytes, kind: ImportKind, *, model=None, row_type=PreviewRow):
     # Windows and POSIX path separators are both stripped from client filenames.
     filename = PureWindowsPath(filename).name
     if not filename or len(filename) > 255:
@@ -82,9 +82,9 @@ def parse_file(filename: str, data: bytes, kind: ImportKind) -> ParsedFile:
     result = ParsedFile(filename=filename, file_sha256=hashlib.sha256(data).hexdigest())
     extension = PureWindowsPath(filename).suffix.lower()
     if extension == ".csv":
-        parse_csv(data, kind, result)
+        parse_csv(data, kind, result, model=model, row_type=row_type)
     elif extension == ".xlsx":
-        parse_xlsx(data, kind, result)
+        parse_xlsx(data, kind, result, model=model, row_type=row_type)
     else:
         raise FileProblem("unsupported_format", "Используйте CSV или XLSX.", 415)
     if result.row_count == 0 and not result.errors:
@@ -92,8 +92,8 @@ def parse_file(filename: str, data: bytes, kind: ImportKind) -> ParsedFile:
     return result
 
 
-def consume_rows(rows, kind: ImportKind, result: ParsedFile):
-    model = ROW_MODELS[kind]
+def consume_rows(rows, kind: ImportKind, result: ParsedFile, *, model=None, row_type=PreviewRow):
+    model = model or ROW_MODELS[kind]
     header = next(rows, None)
     if header is None:
         result.error(1, "file", "Файл пуст.")
@@ -146,7 +146,7 @@ def consume_rows(rows, kind: ImportKind, result: ParsedFile):
                 )
                 continue
             product_names[validated.product_id] = name
-        result.rows.append(PreviewRow(source_row=number, data=validated))
+        result.rows.append(row_type(source_row=number, data=validated))
 
 
 def validation_message(error_type: str) -> str:
@@ -159,12 +159,13 @@ def validation_message(error_type: str) -> str:
     return "Некорректное значение. Проверьте формат, длину и обязательность поля."
 
 
-def parse_csv(data: bytes, kind: ImportKind, result: ParsedFile):
+def parse_csv(data: bytes, kind: ImportKind, result: ParsedFile, **options):
     try:
         text = data.decode("utf-8-sig")
         if "\x00" in text:
             raise FileProblem("invalid_csv", "Файл CSV содержит недопустимые символы.")
-        consume_rows(iter(csv.reader(io.StringIO(text, newline=""), strict=True)), kind, result)
+        consume_rows(iter(csv.reader(io.StringIO(text, newline=""), strict=True)),
+                     kind, result, **options)
     except UnicodeDecodeError as error:
         raise FileProblem("invalid_encoding", "CSV должен быть в кодировке UTF-8.") from error
     except csv.Error as error:
@@ -175,7 +176,7 @@ class Formula:
     pass
 
 
-def parse_xlsx(data: bytes, kind: ImportKind, result: ParsedFile):
+def parse_xlsx(data: bytes, kind: ImportKind, result: ParsedFile, **options):
     workbook = None
     try:
         with ZipFile(io.BytesIO(data)) as archive:
@@ -208,7 +209,7 @@ def parse_xlsx(data: bytes, kind: ImportKind, result: ParsedFile):
                     values.extend([None] * (width - len(values)))
                 yield values
 
-        consume_rows(iter(rows()), kind, result)
+        consume_rows(iter(rows()), kind, result, **options)
     except FileProblem:
         raise
     except (

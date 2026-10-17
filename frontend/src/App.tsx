@@ -9,6 +9,7 @@ import type { Business, Demo, Expenses, ImportConfirmation, ImportKind, ImportPr
 import type { Analysis, Insight, Insights, InsightType, Severity } from './lib/api'
 import type { AdvisorReply, AdvisorStatus } from './lib/api'
 import { ComparisonPage, ForecastPage } from './PlanningPages'
+import { CashPage } from './CashPage'
 import { LanguageSwitcher, localeTag, localizedRecord, tr, useLocale } from './i18n'
 import { AccountPage, AuthActions, AuthGate, useAuth, useCanEdit } from './Auth'
 
@@ -96,6 +97,7 @@ function WorkspaceApp() {
     <Route path="/products" element={value.business ? <ProductsPage /> : <Welcome />} />
     <Route path="/comparison" element={value.business ? <PlanningWorkspace kind="comparison" /> : <Welcome />} />
     <Route path="/forecast" element={value.business ? <PlanningWorkspace kind="forecast" /> : <Welcome />} />
+    <Route path="/cash" element={value.business ? <CashPage key={businessId} businessId={businessId} revision={revision} /> : <Welcome />} />
     <Route path="/imports" element={value.business ? <ImportPage key={businessId} /> : <Welcome />} />
     <Route path="/insights" element={value.business ? <DetectorPage /> : <Welcome />} />
     <Route path="/insights/:insightId" element={value.business ? <InsightPage /> : <Welcome />} />
@@ -122,6 +124,7 @@ function Shell({ children }: { children: ReactNode }) {
     { to: '/', label: tr("Обзор"), icon: LayoutDashboard }, { to: '/products', label: tr("Товары"), icon: Package },
     { to: '/comparison', label: tr("Сравнение периодов"), icon: ArrowLeftRight },
     { to: '/forecast', label: tr("Прогнозирование"), icon: TrendingUp },
+    { to: '/cash', label: tr('Деньги и платежи'), icon: Wallet },
     { to: '/insights', label: tr("Детектор проблем"), icon: Activity },
     { to: '/advisor', label: tr("AI-советник"), icon: Sparkles },
     { to: '/account', label: tr('Аккаунт и команда'), icon: UserRound },

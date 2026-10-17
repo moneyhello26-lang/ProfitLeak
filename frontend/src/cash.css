@@ -1,0 +1,31 @@
+.cash-page { display: grid; gap: 20px; }
+.cash-page .page-heading { margin-bottom: 0; }
+.cash-period, .cash-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.cash-period { padding: 18px; }
+.cash-page label { display: grid; gap: 7px; font-size: 13px; color: #405950; }
+.cash-page input, .cash-page select { min-width: 0; width: 100%; padding: 10px 12px; border: 1px solid #dce5df; border-radius: 8px; background: white; color: #203a31; font: inherit; }
+.cash-page input:focus, .cash-page select:focus { outline: 2px solid #088b7a; outline-offset: 2px; }
+.cash-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.cash-hint { color: #63786f; font-size: 13px; line-height: 1.7; margin: 0; }
+.cash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.cash-kpis article { padding: 20px; display: grid; gap: 12px; overflow-wrap: anywhere; }
+.cash-kpis span { color: #63786f; font-size: 13px; }
+.cash-kpis strong { font-size: clamp(18px, 2vw, 27px); }
+.cash-section { padding: 24px; min-width: 0; display: grid; gap: 18px; }
+.cash-section h2, .cash-section h3, .cash-section p { margin: 0; }
+.cash-section p { line-height: 1.7; }
+.cash-section > p { color: #63786f; }
+.cash-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: end; border-top: 1px solid #e3ebe6; padding-top: 22px; }
+.cash-form > .button { justify-self: start; }
+.cash-wide { grid-column: 1 / -1; }
+.cash-account-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.cash-account-grid article { border: 1px solid #e3ebe6; border-radius: 10px; padding: 18px; display: grid; gap: 14px; }
+.cash-account-grid strong { font-size: 22px; }
+.cash-page .scroll-table { max-width: 100%; }
+.cash-page td { vertical-align: top; }
+.cash-page table .cash-actions { min-width: 260px; }
+.cash-description { display: block; max-width: 220px; white-space: normal; overflow-wrap: anywhere; }
+.cash-section details summary { cursor: pointer; padding: 12px 0; }
+.cash-projection { max-height: 360px; overflow: auto; }
+@media (max-width: 900px) { .cash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cash-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 550px) { .cash-form { grid-template-columns: minmax(0, 1fr); } .cash-section { padding: 16px; } .cash-period > label { flex: 1 1 100%; } .cash-kpis { gap: 8px; } .cash-kpis article { padding: 14px; } }

@@ -811,6 +811,514 @@
         }
       }
     },
+    "/api/v1/cash/accounts": {
+      "post": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Create Account",
+        "operationId": "create_account_api_v1_cash_accounts_post",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cash/entries": {
+      "post": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Create Entry",
+        "operationId": "create_entry_api_v1_cash_entries_post",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Entries",
+        "operationId": "entries_api_v1_cash_entries_get",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Date To"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EntryRead"
+                  },
+                  "title": "Response Entries Api V1 Cash Entries Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cash/report": {
+      "get": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Report",
+        "operationId": "report_api_v1_cash_report_get",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cash/payments": {
+      "post": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Create Payment",
+        "operationId": "create_payment_api_v1_cash_payments_post",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cash/payments/{payment_id}": {
+      "patch": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Payment Action",
+        "operationId": "payment_action_api_v1_cash_payments__payment_id__patch",
+        "parameters": [
+          {
+            "name": "payment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Payment Id"
+            }
+          },
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cash/budgets": {
+      "post": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Save Budget",
+        "operationId": "save_budget_api_v1_cash_budgets_post",
+        "parameters": [
+          {
+            "name": "business_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Business Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cash/statements/preview": {
+      "post": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Preview Statement",
+        "operationId": "preview_statement_api_v1_cash_statements_preview_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_preview_statement_api_v1_cash_statements_preview_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatementPreview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cash/statements/confirm": {
+      "post": {
+        "tags": [
+          "Cash management"
+        ],
+        "summary": "Confirm Statement",
+        "operationId": "confirm_statement_api_v1_cash_statements_confirm_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_confirm_statement_api_v1_cash_statements_confirm_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatementConfirmed"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/businesses": {
       "post": {
         "tags": [
@@ -2558,6 +3066,111 @@
   },
   "components": {
     "schemas": {
+      "AccountBalance": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "opening_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Opening Date"
+          },
+          "opening_balance": {
+            "type": "string",
+            "title": "Opening Balance",
+            "default": "0"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "balance": {
+            "type": "string",
+            "title": "Balance"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "opening_date",
+          "id",
+          "balance"
+        ],
+        "title": "AccountBalance"
+      },
+      "AccountCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "opening_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Opening Date"
+          },
+          "opening_balance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Opening Balance",
+            "default": "0"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "opening_date"
+        ],
+        "title": "AccountCreate"
+      },
+      "AccountRead": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "opening_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Opening Date"
+          },
+          "opening_balance": {
+            "type": "string",
+            "title": "Opening Balance",
+            "default": "0"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "opening_date",
+          "id"
+        ],
+        "title": "AccountRead"
+      },
       "AddMemberRequest": {
         "properties": {
           "email": {
@@ -3060,6 +3673,38 @@
         ],
         "title": "Body_confirm_api_v1_imports_confirm_post"
       },
+      "Body_confirm_statement_api_v1_cash_statements_confirm_post": {
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Account Id"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "preview_token": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Preview Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_id",
+          "account_id",
+          "file",
+          "preview_token"
+        ],
+        "title": "Body_confirm_statement_api_v1_cash_statements_confirm_post"
+      },
       "Body_preview_import_api_v1_imports_preview_post": {
         "properties": {
           "business_id": {
@@ -3089,6 +3734,143 @@
           "file"
         ],
         "title": "Body_preview_import_api_v1_imports_preview_post"
+      },
+      "Body_preview_statement_api_v1_cash_statements_preview_post": {
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Business Id"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Account Id"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "business_id",
+          "account_id",
+          "file"
+        ],
+        "title": "Body_preview_statement_api_v1_cash_statements_preview_post"
+      },
+      "BudgetActual": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "actual": {
+            "type": "string",
+            "title": "Actual"
+          },
+          "remaining": {
+            "type": "string",
+            "title": "Remaining"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "month",
+          "category",
+          "amount",
+          "id",
+          "actual",
+          "remaining"
+        ],
+        "title": "BudgetActual"
+      },
+      "BudgetCreate": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "month",
+          "category",
+          "amount"
+        ],
+        "title": "BudgetCreate"
+      },
+      "BudgetRead": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "month",
+          "category",
+          "amount",
+          "id"
+        ],
+        "title": "BudgetRead"
       },
       "BusinessCreate": {
         "properties": {
@@ -3177,6 +3959,96 @@
         ],
         "title": "BusinessRead"
       },
+      "CashReport": {
+        "properties": {
+          "date_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Date From"
+          },
+          "date_to": {
+            "type": "string",
+            "format": "date",
+            "title": "Date To"
+          },
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/AccountBalance"
+            },
+            "type": "array",
+            "title": "Accounts"
+          },
+          "opening_balance": {
+            "type": "string",
+            "title": "Opening Balance"
+          },
+          "introduced_balance": {
+            "type": "string",
+            "title": "Introduced Balance"
+          },
+          "closing_balance": {
+            "type": "string",
+            "title": "Closing Balance"
+          },
+          "income": {
+            "type": "string",
+            "title": "Income"
+          },
+          "expense": {
+            "type": "string",
+            "title": "Expense"
+          },
+          "net_flow": {
+            "type": "string",
+            "title": "Net Flow"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryFlow"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "projection": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectionPoint"
+            },
+            "type": "array",
+            "title": "Projection"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentRead"
+            },
+            "type": "array",
+            "title": "Payments"
+          },
+          "budgets": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetActual"
+            },
+            "type": "array",
+            "title": "Budgets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date_from",
+          "date_to",
+          "accounts",
+          "opening_balance",
+          "introduced_balance",
+          "closing_balance",
+          "income",
+          "expense",
+          "net_flow",
+          "categories",
+          "projection",
+          "payments",
+          "budgets"
+        ],
+        "title": "CashReport"
+      },
       "CategoryComparison": {
         "properties": {
           "category": {
@@ -3203,6 +4075,24 @@
           "amount"
         ],
         "title": "CategoryComparison"
+      },
+      "CategoryFlow": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "amount"
+        ],
+        "title": "CategoryFlow"
       },
       "ChangeRoleRequest": {
         "properties": {
@@ -3397,6 +4287,168 @@
           "already_loaded"
         ],
         "title": "DemoLoad"
+      },
+      "EntryCreate": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Account Id"
+          },
+          "destination_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense",
+              "transfer"
+            ],
+            "title": "Kind"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Description",
+            "default": ""
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "date",
+          "kind",
+          "amount",
+          "category"
+        ],
+        "title": "EntryCreate"
+      },
+      "EntryRead": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Account Id"
+          },
+          "destination_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense",
+              "transfer"
+            ],
+            "title": "Kind"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Description",
+            "default": ""
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "date",
+          "kind",
+          "amount",
+          "category",
+          "id"
+        ],
+        "title": "EntryRead"
       },
       "ErrorDetail": {
         "properties": {
@@ -4805,6 +5857,176 @@
         ],
         "title": "PasswordRequest"
       },
+      "PaymentAction": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "pay",
+              "cancel"
+            ],
+            "title": "Action"
+          },
+          "paid_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid Date"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "PaymentAction"
+      },
+      "PaymentCreate": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Account Id"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Due Date"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "title": "Kind"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Description",
+            "default": ""
+          },
+          "recurrence": {
+            "type": "string",
+            "enum": [
+              "none",
+              "weekly",
+              "monthly"
+            ],
+            "title": "Recurrence",
+            "default": "none"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "due_date",
+          "kind",
+          "amount",
+          "category"
+        ],
+        "title": "PaymentCreate"
+      },
+      "PaymentRead": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Account Id"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Due Date"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "title": "Kind"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Description",
+            "default": ""
+          },
+          "recurrence": {
+            "type": "string",
+            "enum": [
+              "none",
+              "weekly",
+              "monthly"
+            ],
+            "title": "Recurrence",
+            "default": "none"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "cancelled"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "due_date",
+          "kind",
+          "amount",
+          "category",
+          "id",
+          "status"
+        ],
+        "title": "PaymentRead"
+      },
       "Period": {
         "properties": {
           "date_from": {
@@ -5158,6 +6380,33 @@
         ],
         "title": "ProductsRow"
       },
+      "ProjectionPoint": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "balance": {
+            "type": "string",
+            "title": "Balance"
+          },
+          "gap_accounts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gap Accounts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "balance",
+          "gap_accounts"
+        ],
+        "title": "ProjectionPoint"
+      },
       "RegisterRequest": {
         "properties": {
           "email": {
@@ -5464,6 +6713,154 @@
           "amount"
         ],
         "title": "SourceRow"
+      },
+      "StatementConfirmed": {
+        "properties": {
+          "imported": {
+            "type": "integer",
+            "title": "Imported"
+          }
+        },
+        "type": "object",
+        "required": [
+          "imported"
+        ],
+        "title": "StatementConfirmed"
+      },
+      "StatementError": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row",
+          "field",
+          "message"
+        ],
+        "title": "StatementError"
+      },
+      "StatementPreview": {
+        "properties": {
+          "row_count": {
+            "type": "integer",
+            "title": "Row Count"
+          },
+          "preview": {
+            "items": {
+              "$ref": "#/components/schemas/StatementPreviewRow"
+            },
+            "type": "array",
+            "title": "Preview"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/StatementError"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "can_confirm": {
+            "type": "boolean",
+            "title": "Can Confirm"
+          },
+          "preview_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row_count",
+          "preview",
+          "errors",
+          "can_confirm",
+          "preview_token"
+        ],
+        "title": "StatementPreview"
+      },
+      "StatementPreviewRow": {
+        "properties": {
+          "source_row": {
+            "type": "integer",
+            "title": "Source Row"
+          },
+          "data": {
+            "$ref": "#/components/schemas/StatementRow"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_row",
+          "data"
+        ],
+        "title": "StatementPreviewRow"
+      },
+      "StatementRow": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "title": "Kind"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Description",
+            "default": ""
+          },
+          "reference": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Reference"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "kind",
+          "amount",
+          "category",
+          "reference"
+        ],
+        "title": "StatementRow"
       },
       "UserRead": {
         "properties": {

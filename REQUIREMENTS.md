@@ -21,6 +21,8 @@ This file maps those requirements to implementation; it does not replace the sou
 | FR-14 Period comparison | Separate dashboard: previous/custom non-overlapping periods, six KPIs, absolute/relative/daily changes, margin points, aligned revenue chart, paginated products and expense categories |
 | FR-15 Forecasts | Local weekday-average forecast, 1–90 day API horizon, sales/expense scenarios, independent 7-day holdout, explicit data coverage and assumptions; no LLM dependency |
 | FR-16 Accounts and roles | Registration/login/logout/password change, hashed passwords and revocable HttpOnly sessions; owner/analyst/viewer per business; server authorization, membership management, atomic adoption of existing data and personal demo |
+| Extension: cash management | Independent KZT accounts and exact balances, income/expense/own-account transfers, monthly cash budgets and actuals, payment calendar with weekly/monthly recurrence, guarded one-time posting, per-account cash-gap projection; RU/KK UI and tenant authorization |
+| Extension: bank/1C file exchange | Normalized CSV/XLSX statement template, preview and signed confirmation bound to business/account/file, unique transaction references, whole-file validation and atomic import; provider-native formats require conversion to the template; direct bank/1C APIs are not configured |
 
 SQLite is the default database, matching the source document and the user's
 request to run without Docker. Money is stored as integer cents, quantities as
