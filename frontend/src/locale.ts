@@ -1,5 +1,6 @@
 import { kk } from './translations.ts'
 import { authKk } from './auth.translations.ts'
+import { cashKk } from './cash.translations.ts'
 
 export type Locale = 'ru' | 'kk'
 const storageKey = 'profitleak.locale'
@@ -18,7 +19,7 @@ export function setLocale(next: Locale) {
 }
 export function subscribeLocale(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener) } }
 export function tr(source: string, params: Record<string, string | number> = {}): string {
-  const text = locale === 'kk' ? kk[source] ?? authKk[source] ?? source : source
+  const text = locale === 'kk' ? kk[source] ?? authKk[source] ?? cashKk[source] ?? source : source
   return text.replace(/\{([A-Za-z0-9_]+)\}/g, (placeholder, name: string) => Object.hasOwn(params, name) ? String(params[name]) : placeholder)
 }
 

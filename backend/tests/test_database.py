@@ -215,4 +215,8 @@ def test_migration_downgrade_and_upgrade(database_connection):
             "user_sessions",
             "business_memberships",
             "account_bootstrap",
+            "cash_accounts",
+            "cash_entries",
+            "planned_payments",
+            "cash_budgets",
         }

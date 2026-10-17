@@ -13,6 +13,8 @@ class UploadLimitMiddleware:
         if scope["type"] != "http" or scope.get("path") not in {
             "/api/v1/imports/preview",
             "/api/v1/imports/confirm",
+            "/api/v1/cash/statements/preview",
+            "/api/v1/cash/statements/confirm",
         }:
             return await self.app(scope, receive, send)
         # Allow a small multipart envelope in addition to the 10 MB file.

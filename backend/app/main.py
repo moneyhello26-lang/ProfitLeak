@@ -14,6 +14,7 @@ from starlette.responses import JSONResponse
 from app.api.advisor import router as advisor_router
 from app.api.analytics import router as analytics_router
 from app.api.auth import router as auth_router
+from app.api.cash import router as cash_router
 from app.api.imports import router as imports_router
 from app.api.insights import router as insights_router
 from app.api.planning import router as planning_router
@@ -38,6 +39,7 @@ app.add_middleware(
 )
 app.add_middleware(LanguageMiddleware)
 app.include_router(auth_router)
+app.include_router(cash_router)
 app.include_router(imports_router)
 app.include_router(analytics_router)
 app.include_router(planning_router)
